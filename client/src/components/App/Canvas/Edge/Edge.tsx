@@ -1,5 +1,6 @@
 import React, { useState, useEffect, CSSProperties } from "react";
 import styled from "styled-components";
+
 import { NodeProps } from "../Node";
 import { getAngleRad, getDistance } from "helper";
 
@@ -27,9 +28,9 @@ const Edge: React.FC<EdgeProps> = ({ id, headNode, tailNode }) => {
       transform: `rotate(${degree}rad)`,
     } as CSSProperties;
     setPosition((prev) => edgeStyle);
-  }, []);
+  }, [headNode, tailNode]);
 
   return <StyledEdge id={id} style={position} />;
 };
 
-export default Edge;
+export default React.memo(Edge);
