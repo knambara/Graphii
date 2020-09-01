@@ -94,6 +94,7 @@ const Canvas: React.FC = () => {
         mouseDownNode.current.id === nodeID
       ) {
         mouseDownNode.current = null;
+        setGhostEdge((prev) => null);
         return;
       }
 
