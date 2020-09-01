@@ -11,6 +11,7 @@ export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
   inEdgeIDs?: Array<string>;
   handleClick?: (id: string) => void;
   handleMouseDown?: (id: string) => void;
+  handleMouseUp?: (id: string) => void;
 }
 
 const StyledNode = styled.div`
@@ -29,6 +30,7 @@ const Node: React.FC<NodeProps> = ({
   y,
   handleClick,
   handleMouseDown,
+  handleMouseUp,
 }) => {
   const [position, setPosition] = useState<CSSProperties>();
   useCountRenders();
@@ -49,6 +51,10 @@ const Node: React.FC<NodeProps> = ({
       onMouseDown={(e) => {
         e.stopPropagation();
         handleMouseDown!(id);
+      }}
+      onMouseUp={(e) => {
+        e.stopPropagation();
+        handleMouseUp!(id);
       }}
     />
   );

@@ -77,9 +77,30 @@ const Canvas: React.FC = () => {
     [mouseDownNode, setGhostEdge]
   );
 
+  const addEdge = useCallback(
+    (nodeID: string): void => {
+      if (
+        mouseDownNode.current === null ||
+        mouseDownNode.current.id === nodeID
+      ) {
+        mouseDownNode.current = null;
+        return;
+      }
+
+      const head = mouseDownNode.current;
+      const tail = nodes.find((n) => n.id === nodeID);
+      if (tail === undefined) return;
+      const edge = { id: uuidv4(), headNode: head, tailNode: tail };
+      setEdges((prevEdges) => [...prevEdges, edge]);
+    },
+    [mouseDownNode, nodes, setEdges]
+  );
+
   return (
     <StyledDiv
-      onClick={(e) => addNode(e)}
+      onClick={(e) => {
+        addNode(e);
+      }}
       onMouseMove={(e) => updateGhostEdge(e)}
     >
       {nodes.map((node) => {
@@ -91,6 +112,7 @@ const Canvas: React.FC = () => {
             y={node.y}
             handleClick={deleteNode}
             handleMouseDown={setMouseDownNode}
+            handleMouseUp={addEdge}
           />
         );
       })}

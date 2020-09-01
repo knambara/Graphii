@@ -10,6 +10,8 @@ export interface EdgeProps {
   tailNode: NodeProps;
 }
 
+const EdgeWidth: number = 10;
+
 const StyledEdge = styled.div`
   height: 10px;
   background: #ffffff;
@@ -24,6 +26,8 @@ const Edge: React.FC<EdgeProps> = ({ id, headNode, tailNode }) => {
     const length = getDistance(headNode.x, headNode.y, tailNode.x, tailNode.y);
     const degree = getAngleRad(headNode.x, headNode.y, tailNode.x, tailNode.y);
     const edgeStyle = {
+      left: headNode.x,
+      top: headNode.y - EdgeWidth / 2 /* places center of edge on node */,
       width: `${length}px`,
       transform: `rotate(${degree}rad)`,
     } as CSSProperties;

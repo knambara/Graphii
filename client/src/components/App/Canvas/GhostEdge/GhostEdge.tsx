@@ -19,6 +19,7 @@ const EdgeWidth: number = 10;
 const StyledGhostEdge = styled.div`
   height: ${EdgeWidth}px;
   background: #ffffff;
+  opacity: 0.5;
   position: absolute;
   transform-origin: 0%; /* make pivot point to the left side of edge */
 `;
