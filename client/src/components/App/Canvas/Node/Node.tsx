@@ -22,6 +22,7 @@ const StyledNode = styled.div`
   display: inline-block;
   position: absolute;
   z-index: 2;
+  cursor: pointer;
 `;
 
 const Node: React.FC<NodeProps> = ({

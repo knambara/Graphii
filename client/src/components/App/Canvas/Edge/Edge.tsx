@@ -18,6 +18,7 @@ const StyledEdge = styled.div`
   background: #ffffff;
   position: absolute;
   transform-origin: 0%; /* make pivot point to the left side of edge */
+  cursor: pointer;
 `;
 
 const Edge: React.FC<EdgeProps> = ({ id, headNode, tailNode, handleClick }) => {
