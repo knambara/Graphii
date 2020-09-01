@@ -29,19 +29,29 @@ const Canvas: React.FC = () => {
     let y = event.clientY - bounds.top;
 
     const id: string = uuidv4();
-    const node: NodeProps = { id: id, x: x, y: y };
+    const node: NodeProps = {
+      id: id,
+      x: x,
+      y: y,
+      outEdgeIDs: [],
+      inEdgeIDs: [],
+    };
     setNodes((prevNodes) => [...prevNodes, node]);
   };
 
   const deleteNode = useCallback(
     (nodeID: string): void => {
+      const node = nodes.find((n) => n.id === nodeID);
+      if (node === undefined) return;
+
       setNodes((prevNodes) => {
         return prevNodes.filter((prevNode) => {
           return prevNode.id !== nodeID;
         });
       });
+      deleteIncidentEdges(node);
     },
-    [setNodes]
+    [nodes, setNodes]
   );
 
   const setMouseDownNode = useCallback(
@@ -90,16 +100,42 @@ const Canvas: React.FC = () => {
       const head = mouseDownNode.current;
       const tail = nodes.find((n) => n.id === nodeID);
       if (tail === undefined) return;
+      for (let e of edges) {
+        if (e.headNode === head && e.tailNode === tail) return;
+      }
+
       const edge = { id: uuidv4(), headNode: head, tailNode: tail };
       setEdges((prevEdges) => [...prevEdges, edge]);
+      setNodes((prevNodes) => {
+        return prevNodes.map((node) => {
+          if (node === head) {
+            node.outEdgeIDs!.push(edge.id);
+          } else if (node === tail) {
+            node.inEdgeIDs!.push(edge.id);
+          }
+          return node;
+        });
+      });
     },
-    [mouseDownNode, nodes, setEdges]
+    [mouseDownNode, nodes, edges, setEdges]
   );
 
   const deleteEdge = useCallback(
     (edgeID: string): void => {
       setEdges((prevEdges) => {
         return prevEdges.filter((e) => e.id !== edgeID);
+      });
+    },
+    [setEdges]
+  );
+
+  const deleteIncidentEdges = useCallback(
+    (node: NodeProps): void => {
+      const incidentEdgeIDs = [...node.inEdgeIDs!, ...node.outEdgeIDs!];
+      setEdges((prevEdges) => {
+        return prevEdges.filter(
+          (prevEdge) => !incidentEdgeIDs.includes(prevEdge.id)
+        );
       });
     },
     [setEdges]
@@ -128,6 +164,7 @@ const Canvas: React.FC = () => {
       {edges.map((edge) => {
         return (
           <Edge
+            key={edge.id}
             id={edge.id}
             headNode={edge.headNode}
             tailNode={edge.tailNode}

@@ -38,7 +38,6 @@ const Edge: React.FC<EdgeProps> = ({ id, headNode, tailNode, handleClick }) => {
 
   return (
     <StyledEdge
-      key={id}
       id={id}
       style={position}
       onClick={(e) => {
