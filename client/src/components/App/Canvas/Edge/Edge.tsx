@@ -8,6 +8,7 @@ export interface EdgeProps {
   id: string;
   headNode: NodeProps;
   tailNode: NodeProps;
+  handleClick?: (id: string) => void;
 }
 
 const EdgeWidth: number = 10;
@@ -19,7 +20,7 @@ const StyledEdge = styled.div`
   transform-origin: 0%; /* make pivot point to the left side of edge */
 `;
 
-const Edge: React.FC<EdgeProps> = ({ id, headNode, tailNode }) => {
+const Edge: React.FC<EdgeProps> = ({ id, headNode, tailNode, handleClick }) => {
   const [position, setPosition] = useState<CSSProperties>();
 
   useEffect(() => {
@@ -34,7 +35,17 @@ const Edge: React.FC<EdgeProps> = ({ id, headNode, tailNode }) => {
     setPosition((prev) => edgeStyle);
   }, [headNode, tailNode]);
 
-  return <StyledEdge id={id} style={position} />;
+  return (
+    <StyledEdge
+      key={id}
+      id={id}
+      style={position}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleClick!(id);
+      }}
+    />
+  );
 };
 
 export default React.memo(Edge);

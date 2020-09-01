@@ -96,6 +96,15 @@ const Canvas: React.FC = () => {
     [mouseDownNode, nodes, setEdges]
   );
 
+  const deleteEdge = useCallback(
+    (edgeID: string): void => {
+      setEdges((prevEdges) => {
+        return prevEdges.filter((e) => e.id !== edgeID);
+      });
+    },
+    [setEdges]
+  );
+
   return (
     <StyledDiv
       onClick={(e) => {
@@ -122,6 +131,7 @@ const Canvas: React.FC = () => {
             id={edge.id}
             headNode={edge.headNode}
             tailNode={edge.tailNode}
+            handleClick={deleteEdge}
           />
         );
       })}
