@@ -12,10 +12,10 @@ const StyledDiv = styled.div`
 
 const App: React.FC = () => {
   return (
-    <StyledDiv>
+    <StyledDiv onClick={(e) => console.log("clicked")}>
       <AlgorithmContext.Provider value={null}>
         <Navbar />
-        <Canvas />
+        <Canvas minScale={0.1} maxScale={5} scaleSensitivity={25} />
       </AlgorithmContext.Provider>
     </StyledDiv>
   );

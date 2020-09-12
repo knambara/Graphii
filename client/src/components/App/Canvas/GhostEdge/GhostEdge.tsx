@@ -10,21 +10,18 @@ export interface Coordinate {
 }
 
 export interface GhostEdgeProps {
+  className?: string;
   headNode: NodeProps;
   tailPosition: Coordinate;
 }
 
-const EdgeWidth: number = 10;
+const EdgeWidth = 10;
 
-const StyledGhostEdge = styled.div`
-  height: ${EdgeWidth}px;
-  background: #ffffff;
-  opacity: 0.5;
-  position: absolute;
-  transform-origin: 0%; /* make pivot point to the left side of edge */
-`;
-
-const GhostEdge: React.FC<GhostEdgeProps> = ({ headNode, tailPosition }) => {
+const GhostEdge: React.FC<GhostEdgeProps> = ({
+  className,
+  headNode,
+  tailPosition,
+}) => {
   const [position, setPosition] = useState<CSSProperties>();
 
   useEffect(() => {
@@ -34,23 +31,33 @@ const GhostEdge: React.FC<GhostEdgeProps> = ({ headNode, tailPosition }) => {
       tailPosition.x,
       tailPosition.y
     );
-    const degree = getAngleRad(
-      headNode.x,
-      headNode.y,
-      tailPosition.x,
-      tailPosition.y
-    );
     const edgeStyle = {
       left: headNode.x,
       top: headNode.y - EdgeWidth / 2 /* places center of edge on node */,
       width: `${length}px`,
-      transform: `rotate(${degree}rad)`,
     } as CSSProperties;
 
     setPosition((prev) => edgeStyle);
   }, [headNode, tailPosition]);
 
-  return <StyledGhostEdge style={position} />;
+  return <div className={className} style={position} />;
 };
 
-export default React.memo(GhostEdge);
+const StyledGhostEdge = styled(GhostEdge).attrs((props) => ({
+  degree: getAngleRad(
+    props.headNode.x,
+    props.headNode.y,
+    props.tailPosition.x,
+    props.tailPosition.y
+  ),
+}))`
+  height: ${EdgeWidth}px;
+  background: #ffffff;
+  opacity: 0.5;
+  position: absolute;
+  transform-origin: 0%; /* make pivot point to the left side of edge */
+  transform: ${(props) => props.theme.transform}
+    rotate(${(props) => props.degree}rad);
+`;
+
+export default React.memo(StyledGhostEdge);

@@ -7,23 +7,13 @@ export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
   id: string;
   x: number;
   y: number;
+  className?: string;
   outEdgeIDs?: Array<string>;
   inEdgeIDs?: Array<string>;
   handleClick?: (id: string) => void;
   handleMouseDown?: (id: string) => void;
   handleMouseUp?: (id: string) => void;
 }
-
-const StyledNode = styled.div`
-  height: 50px;
-  width: 50px;
-  border-radius: 50%;
-  background: #ffffff;
-  display: inline-block;
-  position: absolute;
-  z-index: 2;
-  cursor: pointer;
-`;
 
 const Node: React.FC<NodeProps> = ({
   id,
@@ -32,8 +22,11 @@ const Node: React.FC<NodeProps> = ({
   handleClick,
   handleMouseDown,
   handleMouseUp,
+  className,
 }) => {
   const [position, setPosition] = useState<CSSProperties>();
+  const [rightClickDown, setRightClickDown] = useState<boolean>(false);
+
   useCountRenders();
 
   useEffect(() => {
@@ -42,8 +35,9 @@ const Node: React.FC<NodeProps> = ({
   }, [x, y]);
 
   return (
-    <StyledNode
+    <div
       id={id}
+      className={className}
       style={position}
       onClick={(e) => {
         e.stopPropagation();
@@ -51,14 +45,37 @@ const Node: React.FC<NodeProps> = ({
       }}
       onMouseDown={(e) => {
         e.stopPropagation();
-        handleMouseDown!(id);
+        if (e.button === 2) {
+          setRightClickDown((prev) => true);
+        } else {
+          handleMouseDown!(id);
+        }
       }}
       onMouseUp={(e) => {
         e.stopPropagation();
         handleMouseUp!(id);
       }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        return false;
+      }}
     />
   );
 };
 
-export default React.memo(Node);
+const StyledNode = styled(Node)`
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: inline-block;
+  position: absolute;
+  z-index: 2;
+  cursor: pointer;
+
+  transform: ${(props) => {
+    return props.theme.transform;
+  }};
+`;
+
+export default React.memo(StyledNode);

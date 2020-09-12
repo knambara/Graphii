@@ -9,6 +9,8 @@ const StyledNav = styled.nav`
   background: #e94560;
   padding: 10px 25px;
   display: flex;
+  position: relative;
+  z-index: 2;
 `;
 
 const Navbar: React.FC<NavbarProps> = (props) => {
