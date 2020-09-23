@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, CSSProperties } from "react";
 import styled from "styled-components";
+import { TransformState } from "Interfaces/TransformState";
 
 export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
   id: string;
@@ -11,6 +12,7 @@ export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
   handleClick?: (id: string) => void;
   handleMouseDown?: (id: string) => void;
   handleMouseUp?: (id: string) => void;
+  transformState?: TransformState;
 }
 
 const NodeSize = 5;

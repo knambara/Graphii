@@ -7,6 +7,7 @@ import Edge, { EdgeProps } from "./Edge";
 import GhostEdge, { GhostEdgeProps } from "./GhostEdge";
 
 import { useTransformation } from "Hooks/useTransformation";
+import { screenToWorld } from "helper";
 
 // TODO: Fix
 const MENUBAR_OFFSET = 88.81;
@@ -52,15 +53,18 @@ const Canvas: React.FC = () => {
   const addNode = useCallback(
     (event: React.MouseEvent<HTMLDivElement>): void => {
       // Prevents new node to be created on mouseUp
-      console.log(event.pageY);
       if (mouseDownNode.current !== null) {
         setMouseDownNode(null);
         return;
       }
-      let target = event.target as HTMLElement;
-      let bounds = target.getBoundingClientRect();
-      let x = event.clientX - bounds.left;
-      let y = event.clientY - bounds.top;
+
+      let [x, y] = screenToWorld({
+        offsetX: transformState.offsetX,
+        offsetY: transformState.offsetY,
+        iScreenX: event.clientX,
+        iScreenY: event.clientY - MENUBAR_OFFSET,
+        scale: transformState.scale,
+      });
 
       const id: string = uuidv4();
       const node: NodeProps = {
@@ -72,7 +76,7 @@ const Canvas: React.FC = () => {
       };
       setNodes((prevNodes) => [...prevNodes, node]);
     },
-    [mouseDownNode.current, setMouseDownNode, nodes, setNodes]
+    [mouseDownNode.current, setMouseDownNode, nodes, setNodes, transformState]
   );
 
   const deleteNode = useCallback(
@@ -94,11 +98,18 @@ const Canvas: React.FC = () => {
     (event: React.MouseEvent<HTMLDivElement>): void => {
       if (mouseDownNode.current === null) return;
 
-      let target = event.currentTarget as HTMLElement;
-      let bounds = target.getBoundingClientRect();
+      // let target = event.currentTarget as HTMLElement;
+      // let bounds = target.getBoundingClientRect();
+      let [x, y] = screenToWorld({
+        offsetX: transformState.offsetX,
+        offsetY: transformState.offsetY,
+        iScreenX: event.clientX,
+        iScreenY: event.clientY - MENUBAR_OFFSET,
+        scale: transformState.scale,
+      });
       const tail = {
-        x: event.clientX - bounds.left, //- state.translateX,
-        y: event.clientY - bounds.top, //- state.translateY,
+        x: x,
+        y: y,
       };
       const newGhostEdge = {
         headNode: mouseDownNode.current,
@@ -106,7 +117,7 @@ const Canvas: React.FC = () => {
       };
       setGhostEdge((prev) => newGhostEdge);
     },
-    [mouseDownNode, setGhostEdge]
+    [mouseDownNode, setGhostEdge, transformState]
   );
 
   const addEdge = useCallback(
@@ -206,6 +217,7 @@ const Canvas: React.FC = () => {
             handleClick={deleteNode}
             handleMouseDown={setMouseDownNode}
             handleMouseUp={addEdge}
+            transformState={transformState}
           />
         );
       })}
