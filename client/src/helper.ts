@@ -1,3 +1,8 @@
+import { TransformState } from "Interfaces/TransformState";
+import { PanProps } from "Interfaces/PanProps";
+import { ZoomProps } from "Interfaces/ZoomProps";
+import { ScaleProps } from "Interfaces/ScaleProps";
+
 export const getAngleRad = (x1: number, y1: number, x2: number, y2: number) => {
   return Math.atan2(y2 - y1, x2 - x1);
 };
@@ -11,58 +16,101 @@ export const getDistance = (
   return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 };
 
-export const getMatrix = ({
+// input: offsetX, offsetY : integers; fWorldX, fWorldY: floats
+// output: pair of screen coordinates; int[]
+// NOTE: in our usage, offsets should only be negative
+export const worldToScreen = ({
+  offsetX,
+  offsetY,
+  fWorldX,
+  fWorldY,
   scale,
-  translateX,
-  translateY,
 }: {
+  offsetX: number;
+  offsetY: number;
+  fWorldX: number;
+  fWorldY: number;
   scale: number;
-  translateX: number;
-  translateY: number;
-}) => `matrix(${scale}, 0, 0, ${scale}, ${translateX}, ${translateY})`;
-
-// Returns new scale value based on scale sensitivity for every wheel action
-// ex: scale sensitivity = 10 -> zoom -> 1.0 -> 1.1
-export const getScale = ({
-  scale,
-  minScale,
-  maxScale,
-  scaleSensitivity,
-  deltaScale,
-}: {
-  scale: number;
-  minScale: number;
-  maxScale: number;
-  scaleSensitivity: number;
-  deltaScale: number;
-}) => {
-  console.log(scale);
-  console.log(deltaScale / (scaleSensitivity / scale));
-  let newScale = scale + deltaScale / (scaleSensitivity / scale);
-  console.log(newScale);
-  newScale = Math.max(minScale, Math.min(newScale, maxScale));
-  console.log(newScale);
-  return [scale, newScale];
+}): number[] => {
+  let iScreenX = (fWorldX + offsetX) * scale;
+  let iScreenY = (fWorldY + offsetY) * scale;
+  return [iScreenX, iScreenY];
 };
 
-const hasPositionChanged = (pos: number, prevPos: number) => pos !== prevPos;
-
-const valueInRange = (minScale: number, maxScale: number, scale: number) =>
-  scale <= maxScale && scale >= minScale;
-
-export const getTranslate = (
-  minScale: number,
-  maxScale: number,
-  scale: number
-) => ({
-  pos,
-  prevPos,
-  translate,
+// input: all integers
+// output: pair of world coordinates; float[]
+export const screenToWorld = ({
+  offsetX,
+  offsetY,
+  iScreenX,
+  iScreenY,
+  scale,
 }: {
-  pos: number;
-  prevPos: number;
-  translate: number;
-}) =>
-  valueInRange(minScale, maxScale, scale) && hasPositionChanged(pos, prevPos)
-    ? translate + (pos - prevPos * scale) * (1 - 1 / scale)
-    : translate;
+  offsetX: number;
+  offsetY: number;
+  iScreenX: number;
+  iScreenY: number;
+  scale: number;
+}): number[] => {
+  let fWorldX = iScreenX / scale - offsetX;
+  let fWorldY = iScreenY / scale - offsetY;
+  return [fWorldX, fWorldY];
+};
+
+// Return a new transformation state after pan event
+export const pan = (
+  currentState: TransformState,
+  panProps: PanProps
+): TransformState => {
+  // subtraction translates mouse coordinate differences into world space offset;
+  // basically a screen to world transform so we need to divide by scale
+  return {
+    ...currentState,
+    offsetX: currentState.offsetX + panProps.movementX / currentState.scale,
+    offsetY: currentState.offsetY + panProps.movementY / currentState.scale,
+  };
+};
+
+export const zoom = (
+  currentState: TransformState,
+  zoomProps: ZoomProps,
+  scaleProps: ScaleProps
+): TransformState => {
+  let currentScale = currentState.scale;
+  let newScale = zoomProps.delta > 0 ? currentScale * 1.1 : currentScale * 0.9;
+
+  // Restrict scale
+  newScale = Math.min(
+    scaleProps.maxScale,
+    Math.max(scaleProps.minScale, newScale)
+  );
+
+  // Get world space coordinate of zoom event before scale change
+  let [worldXBeforeZoom, worldYBeforeZoom] = screenToWorld({
+    offsetX: currentState.offsetX,
+    offsetY: currentState.offsetY,
+    iScreenX: zoomProps.pageX,
+    iScreenY: zoomProps.pageY,
+    scale: currentScale,
+  });
+
+  // Get world space coordinate of zoom event after scale change
+  let [worldXAfterZoom, worldYAfterZoom] = screenToWorld({
+    offsetX: currentState.offsetX,
+    offsetY: currentState.offsetY,
+    iScreenX: zoomProps.pageX,
+    iScreenY: zoomProps.pageY,
+    scale: newScale,
+  });
+
+  // Adjust offset according to difference in world space
+  let deltaOffsetX = worldXBeforeZoom - worldXAfterZoom;
+  let deltaOffsetY = worldYBeforeZoom - worldYAfterZoom;
+
+  return {
+    ...currentState,
+    offsetX: currentState.offsetX - deltaOffsetX,
+    offsetY: currentState.offsetY - deltaOffsetY,
+    scale: newScale,
+  };
+};

@@ -12,7 +12,7 @@ export interface EdgeProps {
   handleClick?: (id: string) => void;
 }
 
-const EdgeWidth = 10;
+const EdgeWidth = 1;
 
 let length: number;
 let degree: number;
@@ -59,14 +59,13 @@ const StyledEdge = styled(Edge).attrs((props) => ({
     props.tailNode.y
   ),
 }))`
-  height: 10px;
+  height: ${EdgeWidth}px;
   background: #ffffff;
   position: absolute;
   transform-origin: 0%; /* make pivot point to the left side of edge */
   cursor: pointer;
 
-  transform: ${(props) => props.theme.transform}
-    rotate(${(props) => props.degree}rad);
+  transform: rotate(${(props) => props.degree}rad);
 `;
 
 export default React.memo(StyledEdge);

@@ -1,5 +1,4 @@
 import React from "react";
-import AlgorithmContext from "Contexts/AlgorithmContext";
 import Canvas from "./Canvas";
 import Navbar from "./Navbar";
 import styled from "styled-components";
@@ -13,10 +12,8 @@ const StyledDiv = styled.div`
 const App: React.FC = () => {
   return (
     <StyledDiv onClick={(e) => console.log("clicked")}>
-      <AlgorithmContext.Provider value={null}>
-        <Navbar />
-        <Canvas minScale={0.1} maxScale={5} scaleSensitivity={25} />
-      </AlgorithmContext.Provider>
+      <Navbar />
+      <Canvas />
     </StyledDiv>
   );
 };

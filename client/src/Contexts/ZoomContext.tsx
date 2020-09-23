@@ -1,5 +1,5 @@
 import { createContext } from "react";
 
-const ZoomContexy = createContext(null);
+const ZoomContext = createContext(null);
 
 export default ZoomContext;

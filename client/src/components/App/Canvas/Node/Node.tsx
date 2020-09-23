@@ -1,7 +1,5 @@
-import React, { useState, useEffect, CSSProperties } from "react";
+import React, { useState, useEffect, useRef, CSSProperties } from "react";
 import styled from "styled-components";
-
-import { useCountRenders } from "Hooks/useCountRenders";
 
 export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
   id: string;
@@ -15,6 +13,8 @@ export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
   handleMouseUp?: (id: string) => void;
 }
 
+const NodeSize = 5;
+
 const Node: React.FC<NodeProps> = ({
   id,
   x,
@@ -24,13 +24,14 @@ const Node: React.FC<NodeProps> = ({
   handleMouseUp,
   className,
 }) => {
+  const nodeRef = useRef<React.RefObject<HTMLDivElement>>(null);
   const [position, setPosition] = useState<CSSProperties>();
-  const [rightClickDown, setRightClickDown] = useState<boolean>(false);
-
-  useCountRenders();
 
   useEffect(() => {
-    const nodeStyle = { left: x - 25, top: y - 25 } as CSSProperties;
+    const nodeStyle = {
+      left: x - 2.5,
+      top: y - 2.5,
+    } as CSSProperties;
     setPosition((prev) => nodeStyle);
   }, [x, y]);
 
@@ -45,11 +46,7 @@ const Node: React.FC<NodeProps> = ({
       }}
       onMouseDown={(e) => {
         e.stopPropagation();
-        if (e.button === 2) {
-          setRightClickDown((prev) => true);
-        } else {
-          handleMouseDown!(id);
-        }
+        handleMouseDown!(id);
       }}
       onMouseUp={(e) => {
         e.stopPropagation();
@@ -64,18 +61,17 @@ const Node: React.FC<NodeProps> = ({
 };
 
 const StyledNode = styled(Node)`
-  height: 50px;
-  width: 50px;
+  height: ${NodeSize}px;
+  width: ${NodeSize}px;
   border-radius: 50%;
   background: #ffffff;
   display: inline-block;
   position: absolute;
   z-index: 2;
   cursor: pointer;
-
-  transform: ${(props) => {
+  /* transform: ${(props) => {
     return props.theme.transform;
-  }};
+  }}; */
 `;
 
 export default React.memo(StyledNode);

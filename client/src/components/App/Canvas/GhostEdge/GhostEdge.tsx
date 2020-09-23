@@ -15,7 +15,7 @@ export interface GhostEdgeProps {
   tailPosition: Coordinate;
 }
 
-const EdgeWidth = 10;
+const EdgeWidth = 1;
 
 const GhostEdge: React.FC<GhostEdgeProps> = ({
   className,
@@ -56,8 +56,7 @@ const StyledGhostEdge = styled(GhostEdge).attrs((props) => ({
   opacity: 0.5;
   position: absolute;
   transform-origin: 0%; /* make pivot point to the left side of edge */
-  transform: ${(props) => props.theme.transform}
-    rotate(${(props) => props.degree}rad);
+  transform: rotate(${(props) => props.degree}rad);
 `;
 
 export default React.memo(StyledGhostEdge);
