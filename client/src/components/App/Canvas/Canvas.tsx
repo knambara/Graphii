@@ -22,8 +22,8 @@ const StyledDiv = styled.div`
 
 // Configuration for scaling
 const scaleProps = {
-  minScale: 0.1,
-  maxScale: 5,
+  minScale: 1,
+  maxScale: 20,
   scaleSensitivity: 10,
 };
 

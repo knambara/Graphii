@@ -16,15 +16,38 @@ const initialState: TransformState = {
   scale: 1,
 };
 
+// TODO: Fix
+const MENUBAR_OFFSET = 90;
+
+// TODO: How to reconfigure transformOrigin on zoomout
+const isStateValid = (state: TransformState): boolean => {
+  const worldSpaceWidth = window.innerWidth * state.scale;
+  const worldSpaceHeight = (window.innerHeight - MENUBAR_OFFSET) * state.scale;
+  if (
+    state.offsetX > 0 ||
+    state.offsetY > 0 ||
+    Math.abs(state.offsetX) * state.scale >
+      worldSpaceWidth - window.innerWidth ||
+    Math.abs(state.offsetY) * state.scale >
+      worldSpaceHeight - (window.innerHeight - MENUBAR_OFFSET)
+  ) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
 const transformReducer = (
   state: TransformState,
   action: Action
 ): TransformState => {
   switch (action.type) {
     case "PAN":
-      return pan(state, action.props);
+      const newStateFromPan = pan(state, action.props);
+      return isStateValid(newStateFromPan) ? newStateFromPan : state;
     case "ZOOM":
-      return zoom(state, action.props, action.scale);
+      const newStateFromZoom = zoom(state, action.props, action.scale);
+      return isStateValid(newStateFromZoom) ? newStateFromZoom : state;
     default:
       throw new Error();
   }
