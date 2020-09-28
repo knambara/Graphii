@@ -11,7 +11,7 @@ const StyledDiv = styled.div`
 
 const App: React.FC = () => {
   return (
-    <StyledDiv onClick={(e) => console.log("clicked")}>
+    <StyledDiv>
       <Navbar />
       <Canvas />
     </StyledDiv>

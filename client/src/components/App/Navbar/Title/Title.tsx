@@ -6,6 +6,7 @@ interface TitleProps {}
 const StyledTitle = styled.h1`
   color: #f6f9fc;
   font-family: "Montserrat", sans-serif;
+  margin-right: 50px;
 `;
 
 const Title: React.FC<TitleProps> = (props) => {
