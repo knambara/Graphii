@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
 
+import { useAlgoDispatch } from "Contexts/AlgorithmContext";
+
 export interface PopOverState {
   name: string;
   content: string[];
@@ -88,7 +90,8 @@ const Arrow = styled("div")<{ xCoor: number; yCoor: number }>`
 const PopOver: React.FC<PopOverProps> = ({ state }) => {
   const [contentRef, setContentRef] = useState<HTMLUListElement | null>(null);
   const [contentSize, setContentSize] = useState<number[]>([0, 0]);
-  const [contentPos, setContentPos] = useState<number[]>([0, 0]);
+
+  const dispatch = useAlgoDispatch();
 
   const onRefChange = useCallback(
     (node: HTMLUListElement | null): void => {
@@ -113,7 +116,12 @@ const PopOver: React.FC<PopOverProps> = ({ state }) => {
     <StyledContainer show={state.show} onClick={() => console.log("click")}>
       <Content ref={onRefChange} xCoor={x!} yCoor={y!}>
         {state.content.map((item, index) => (
-          <ContentItem key={index}>{item}</ContentItem>
+          <ContentItem
+            key={index}
+            onClick={() => dispatch({ type: "set", newName: item })}
+          >
+            {item}
+          </ContentItem>
         ))}
       </Content>
 

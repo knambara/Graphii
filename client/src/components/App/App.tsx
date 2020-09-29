@@ -1,4 +1,6 @@
 import React from "react";
+import { AlgoProvider } from "Contexts/AlgorithmContext";
+
 import Canvas from "./Canvas";
 import Navbar from "./Navbar";
 import styled from "styled-components";
@@ -12,8 +14,10 @@ const StyledDiv = styled.div`
 const App: React.FC = () => {
   return (
     <StyledDiv>
-      <Navbar />
-      <Canvas />
+      <AlgoProvider>
+        <Navbar />
+        <Canvas />
+      </AlgoProvider>
     </StyledDiv>
   );
 };
