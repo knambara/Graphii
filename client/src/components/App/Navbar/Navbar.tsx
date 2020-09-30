@@ -3,14 +3,15 @@ import styled from "styled-components";
 import Title from "./Title";
 import NavTab from "./NavTab";
 import PopOver, { PopOverState } from "./PopOver";
+import { useAlgoState } from "Contexts/AlgorithmContext";
 
 interface NavbarProps {}
 
-const StyledNav = styled.nav`
+const StyledNav = styled("nav")<{ show: boolean }>`
   flex: 1;
   background: #e94560;
   padding: 10px 25px;
-  display: flex;
+  display: ${(props) => (props.show ? `flex` : `none`)};
   align-items: center;
   position: relative;
   z-index: 2;
@@ -31,6 +32,8 @@ const initialPopOver = {
 
 const Navbar: React.FC<NavbarProps> = (props) => {
   const [popOver, setPopOver] = useState<PopOverState>(initialPopOver);
+  const algorithmState = useAlgoState();
+  console.log(algorithmState);
 
   const showPopOver = useCallback(
     (name: string, tabRef: HTMLDivElement | null): void => {
@@ -56,7 +59,7 @@ const Navbar: React.FC<NavbarProps> = (props) => {
   }, [setPopOver]);
 
   return (
-    <StyledNav onMouseLeave={hidePopOver}>
+    <StyledNav onMouseLeave={hidePopOver} show={algorithmState.name === null}>
       <Title>Graphii</Title>
       <NavTab name={"path"} onMouseOver={showPopOver}>
         Path Finding

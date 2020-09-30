@@ -4,6 +4,7 @@ import { AlgoProvider } from "Contexts/AlgorithmContext";
 import Canvas from "./Canvas";
 import Navbar from "./Navbar";
 import styled from "styled-components";
+import AlgorithmBar from "./Canvas/AlgorithmBar";
 
 const StyledDiv = styled.div`
   height: 100%;
@@ -16,6 +17,7 @@ const App: React.FC = () => {
     <StyledDiv>
       <AlgoProvider>
         <Navbar />
+        <AlgorithmBar />
         <Canvas />
       </AlgoProvider>
     </StyledDiv>
