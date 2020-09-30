@@ -11,12 +11,15 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const Container = styled("div")<{ show: boolean }>`
-  opacity: ${(props) => (props.show ? 1 : 0)};
-  display: ${(props) => (props.show ? `flex` : `none`)};
+  top: -200px;
+  transform: translateY(${(props) => (props.show ? 200 : -200)}px);
+  transition: transform 0.5s;
+  display: flex;
   background: #00b8a9;
   padding: 10px 25px;
   align-items: center;
-  position: relative;
+  width: 100%;
+  position: absolute;
   z-index: 2;
 `;
 

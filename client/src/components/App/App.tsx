@@ -10,6 +10,7 @@ const StyledDiv = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: #16213e;
 `;
 
 const App: React.FC = () => {

@@ -9,11 +9,14 @@ interface NavbarProps {}
 
 const StyledNav = styled("nav")<{ show: boolean }>`
   flex: 1;
+  top: -200px;
   background: #e94560;
   padding: 10px 25px;
-  display: ${(props) => (props.show ? `flex` : `none`)};
+  display: flex;
   align-items: center;
   position: relative;
+  transform: translateY(${(props) => (props.show ? 200 : -200)}px);
+  transition: transform 0.5s;
   z-index: 2;
 `;
 
