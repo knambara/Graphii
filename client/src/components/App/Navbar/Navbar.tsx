@@ -21,7 +21,7 @@ const StyledNav = styled("nav")<{ show: boolean }>`
 `;
 
 const popOverContent: { [string: string]: string[] } = {
-  path: ["dsf", "bfs", "dijkstra", "bellman-ford", "a*"],
+  path: ["dfs", "bfs", "dijkstra", "bellman-ford", "a*"],
   mst: ["prim", "kruskal"],
   flow: ["fulkerson", "karp", "dinic"],
 };

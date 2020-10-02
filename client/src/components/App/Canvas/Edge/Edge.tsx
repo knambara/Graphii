@@ -1,4 +1,4 @@
-import React, { useState, useEffect, CSSProperties } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 
 import { NodeProps } from "../Node";
@@ -12,11 +12,22 @@ export interface EdgeProps {
   handleClick?: (id: string) => void;
 }
 
-const EdgeWidth = 1;
-
-let length: number;
-let degree: number;
-let edgeStyle: {} = {};
+const StyledEdge = styled("div")<{
+  left: number;
+  top: number;
+  width: number;
+  degree: number;
+}>`
+  position: absolute;
+  left: ${(props) => props.left}px;
+  top: ${(props) => props.top}px;
+  height: 1px;
+  width: ${(props) => props.width}px;
+  background: #ffffff;
+  transform-origin: 0%;
+  transform: rotate(${(props) => props.degree}rad);
+  cursor: pointer;
+`;
 
 const Edge: React.FC<EdgeProps> = ({
   id,
@@ -25,24 +36,17 @@ const Edge: React.FC<EdgeProps> = ({
   tailNode,
   handleClick,
 }) => {
-  const [position, setPosition] = useState<CSSProperties>();
-
-  useEffect(() => {
-    length = getDistance(headNode.x, headNode.y, tailNode.x, tailNode.y);
-    degree = getAngleRad(headNode.x, headNode.y, tailNode.x, tailNode.y);
-    edgeStyle = {
-      left: headNode.x,
-      top: headNode.y - EdgeWidth / 2 /* places center of edge on node */,
-      width: `${length}px`,
-    } as CSSProperties;
-    setPosition((prev) => edgeStyle);
-  }, [headNode, tailNode]);
+  const width = getDistance(headNode.x, headNode.y, tailNode.x, tailNode.y);
+  const degree = getAngleRad(headNode.x, headNode.y, tailNode.x, tailNode.y);
+  const left = headNode.x;
+  const top = headNode.y - 1 / 2; /* places center of edge on node */
 
   return (
-    <div
-      id={id}
-      className={className}
-      style={position}
+    <StyledEdge
+      width={width}
+      degree={degree}
+      left={left}
+      top={top}
       onClick={(e) => {
         e.stopPropagation();
         handleClick!(id);
@@ -51,21 +55,4 @@ const Edge: React.FC<EdgeProps> = ({
   );
 };
 
-const StyledEdge = styled(Edge).attrs((props) => ({
-  degree: getAngleRad(
-    props.headNode.x,
-    props.headNode.y,
-    props.tailNode.x,
-    props.tailNode.y
-  ),
-}))`
-  height: ${EdgeWidth}px;
-  background: #ffffff;
-  position: absolute;
-  transform-origin: 0%; /* make pivot point to the left side of edge */
-  cursor: pointer;
-
-  transform: rotate(${(props) => props.degree}rad);
-`;
-
-export default React.memo(StyledEdge);
+export default Edge;

@@ -17,7 +17,7 @@ const initialState: TransformState = {
 };
 
 // TODO: Fix
-const MENUBAR_OFFSET = 89;
+const MENUBAR_OFFSET = 97;
 
 // TODO: How to reconfigure transformOrigin on zoomout
 const isStateValid = (state: TransformState): boolean => {

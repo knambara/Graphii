@@ -4,7 +4,7 @@ import { AlgoProvider } from "Contexts/AlgorithmContext";
 import Canvas from "./Canvas";
 import Navbar from "./Navbar";
 import styled from "styled-components";
-import AlgorithmBar from "./Canvas/AlgorithmBar";
+import AlgorithmBar from "./AlgorithmBar";
 
 const StyledDiv = styled.div`
   height: 100%;

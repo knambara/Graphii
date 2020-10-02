@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, CSSProperties } from "react";
 import styled from "styled-components";
-import { TransformState } from "Interfaces/TransformState";
 
 export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
   id: string;
@@ -9,43 +8,40 @@ export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
   outEdgeIDs?: Array<string>;
   inEdgeIDs?: Array<string>;
-  handleClick?: (id: string) => void;
   handleMouseDown?: (id: string) => void;
   handleMouseUp?: (id: string) => void;
-  transformState?: TransformState;
 }
 
-const NodeSize = 5;
+const StyledNode = styled("div")<{ left: number; top: number }>`
+  position: absolute;
+  display: inline-block;
+  z-index: 2;
+  left: ${(props) => props.left}px;
+  top: ${(props) => props.top}px;
+  height: 5px;
+  width: 5px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+`;
 
 const Node: React.FC<NodeProps> = ({
   id,
   x,
   y,
-  handleClick,
   handleMouseDown,
   handleMouseUp,
   className,
 }) => {
   const nodeRef = useRef<React.RefObject<HTMLDivElement>>(null);
-  const [position, setPosition] = useState<CSSProperties>();
 
-  useEffect(() => {
-    const nodeStyle = {
-      left: x - 2.5,
-      top: y - 2.5,
-    } as CSSProperties;
-    setPosition((prev) => nodeStyle);
-  }, [x, y]);
+  const left = x - 2.5;
+  const top = y - 2.5;
 
   return (
-    <div
-      id={id}
-      className={className}
-      style={position}
-      onClick={(e) => {
-        e.stopPropagation();
-        handleClick!(id);
-      }}
+    <StyledNode
+      left={left}
+      top={top}
       onMouseDown={(e) => {
         e.stopPropagation();
         handleMouseDown!(id);
@@ -62,18 +58,4 @@ const Node: React.FC<NodeProps> = ({
   );
 };
 
-const StyledNode = styled(Node)`
-  height: ${NodeSize}px;
-  width: ${NodeSize}px;
-  border-radius: 50%;
-  background: #ffffff;
-  display: inline-block;
-  position: absolute;
-  z-index: 2;
-  cursor: pointer;
-  /* transform: ${(props) => {
-    return props.theme.transform;
-  }}; */
-`;
-
-export default React.memo(StyledNode);
+export default Node;
