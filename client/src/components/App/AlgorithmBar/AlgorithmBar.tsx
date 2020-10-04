@@ -1,5 +1,5 @@
-import React from "react";
-import styled from "styled-components";
+import React, { useState, useEffect } from "react";
+import styled, { keyframes } from "styled-components";
 import Title from "Components/App/Navbar/Title";
 import { useAlgoState, useAlgoDispatch } from "Contexts/AlgorithmContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -33,7 +33,7 @@ const AlgorithmTitle = styled("h2")`
 
 const ConfigContainer = styled("div")`
   display: flex;
-  flex: 3;
+  flex: 2;
   justify-content: center;
 `;
 
@@ -79,6 +79,26 @@ const Slider = styled("input")`
   }
 `;
 
+const fadeIn = keyframes`
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+`;
+
+const MessageContainer = styled("div")<{}>`
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  font-family: "Open sans", sans-serif;
+  font-weight: 900;
+  animation: 2s ${fadeIn};
+`;
+
 const RightContainer = styled("div")`
   flex: 1;
 `;
@@ -109,6 +129,25 @@ const AlgorithmBar: React.FC<{}> = () => {
   const algoState = useAlgoState();
   const algoDispatch = useAlgoDispatch();
 
+  const [message, setMessage] = useState<string>("");
+
+  useEffect(() => {
+    switch (algoState.status) {
+      case "setSource": {
+        setMessage((prev) => "Set source node.");
+        return;
+      }
+      case "setTarget": {
+        setMessage((prev) => "Set target node.");
+        return;
+      }
+      case "ready": {
+        setMessage((prev) => "Visualize!");
+        return;
+      }
+    }
+  }, [algoState]);
+
   return (
     <Container show={algoState.name !== null}>
       <TitleContainer>
@@ -121,6 +160,8 @@ const AlgorithmBar: React.FC<{}> = () => {
         <StyledIcon icon={faStepForward} color="white" />
         <Slider type="range" />
       </ConfigContainer>
+
+      <MessageContainer>{message}</MessageContainer>
 
       <RightContainer>
         <CancelButton onClick={() => algoDispatch({ type: "cancel" })}>

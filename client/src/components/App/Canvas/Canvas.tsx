@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
@@ -7,10 +7,8 @@ import Edge, { EdgeProps } from "./Edge";
 import GhostEdge, { GhostEdgeProps } from "./GhostEdge";
 
 import { useTransformation } from "Hooks/useTransformation";
+import { useAlgoState, useAlgoDispatch } from "Contexts/AlgorithmContext";
 import { screenToWorld } from "helper";
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBullseye, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
 // TODO: Fix
 const MENUBAR_OFFSET = 97;
@@ -36,23 +34,34 @@ const Canvas: React.FC = () => {
   const [edges, setEdges] = useState<Array<EdgeProps>>([]);
   const [ghostEdge, setGhostEdge] = useState<GhostEdgeProps | null>(null);
 
+  const [source, setSource] = useState<NodeProps | null>(null);
+  const [target, setTarget] = useState<NodeProps | null>(null);
+
   const { transformState, pan, zoom } = useTransformation(scaleProps);
   const mouseDownNode = useRef<NodeProps | null>(null);
   const isMovingNode = useRef<boolean>(false);
+  const dKeyPressed = useRef<boolean>(false); //TODO: only works when canvas is clicked
 
-  const setMouseDownNode = useCallback(
-    (nodeID: string | null): void => {
-      if (nodeID === null) {
-        mouseDownNode.current = null;
-        setGhostEdge((prev) => null);
-        return;
-      }
+  const algoState = useAlgoState();
+  const algoDispatch = useAlgoDispatch();
 
-      const node = nodes.find((n) => nodeID === n.id);
-      if (node !== undefined) mouseDownNode.current = node;
-    },
-    [nodes, mouseDownNode]
-  );
+  useEffect(() => {
+    if (algoState.name === null) {
+      setSource((prev) => null);
+      setTarget((prev) => null);
+    }
+  }, [algoState, setSource, setTarget]);
+
+  const setMouseDownNode = (nodeID: string | null): void => {
+    if (nodeID === null) {
+      mouseDownNode.current = null;
+      setGhostEdge((prev) => null);
+      return;
+    }
+
+    const node = nodes.find((n) => nodeID === n.id);
+    if (node !== undefined) mouseDownNode.current = node;
+  };
 
   const addNode = useCallback(
     (coor: { screenX: number; screenY: number }): void => {
@@ -180,34 +189,52 @@ const Canvas: React.FC = () => {
       isMovingNode.current = false;
       return;
     }
+
     if (mouseDownNode.current.id === nodeID) {
-      mouseDownNode.current = null;
-      deleteNode(nodeID);
-      setGhostEdge((prev) => null);
-      return;
-    }
-
-    // Else, addEdge if possible
-    const head = mouseDownNode.current;
-    const tail = nodes.find((n) => n.id === nodeID);
-    if (tail !== undefined) addEdge(head, tail);
-  };
-
-  const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (mouseDownNode.current !== null) {
-        setMouseDownNode(null);
+      // Handle setting source and target
+      if (algoState.status === "setSource") {
+        setSource((prev) => mouseDownNode.current);
+        algoDispatch({ type: "setStatus", newStatus: "setTarget" });
+        mouseDownNode.current = null;
         return;
       }
-      if (mouseDownNode.current === null) {
-        addNode({
-          screenX: event.clientX,
-          screenY: event.clientY - MENUBAR_OFFSET,
-        });
+      if (algoState.status === "setTarget") {
+        if (mouseDownNode.current === source) return;
+        setTarget((prev) => mouseDownNode.current);
+        algoDispatch({ type: "setStatus", newStatus: "ready" });
+        mouseDownNode.current = null;
+        return;
       }
-    },
-    [mouseDownNode.current, addNode, setMouseDownNode]
-  );
+
+      // Handle delete node
+      if (dKeyPressed.current) {
+        deleteNode(nodeID);
+        setGhostEdge((prev) => null);
+        mouseDownNode.current = null;
+        return;
+      }
+    } else {
+      // Handle add edge
+      const head = mouseDownNode.current;
+      const tail = nodes.find((n) => n.id === nodeID);
+      if (tail !== undefined) addEdge(head!, tail);
+      mouseDownNode.current = null;
+      setGhostEdge((prev) => null);
+    }
+  };
+
+  const handleMouseUp = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (mouseDownNode.current !== null) {
+      setMouseDownNode(null);
+      return;
+    }
+    if (mouseDownNode.current === null) {
+      addNode({
+        screenX: event.clientX,
+        screenY: event.clientY - MENUBAR_OFFSET,
+      });
+    }
+  };
 
   const handleMouseMove = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -240,11 +267,26 @@ const Canvas: React.FC = () => {
     });
   }, []);
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "d") {
+      dKeyPressed.current = true;
+    }
+  };
+
+  const handleKeyUp = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "d") {
+      dKeyPressed.current = false;
+    }
+  };
+
   return (
     <StyledDiv
-      onClick={handleClick}
+      onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
       onWheel={handleWheel}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+      tabIndex={0}
       style={{
         transformOrigin: `top left`,
         transform: `scale(${transformState.scale}, ${transformState.scale}) translate(${transformState.offsetX}px, ${transformState.offsetY}px)`,
@@ -258,6 +300,8 @@ const Canvas: React.FC = () => {
             className={"node"}
             x={node.x}
             y={node.y}
+            isSource={node === source}
+            isTarget={node === target}
             handleMouseDown={setMouseDownNode}
             handleMouseUp={handleMouseUpOnNode}
           />

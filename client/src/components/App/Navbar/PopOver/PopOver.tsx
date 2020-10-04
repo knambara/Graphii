@@ -112,14 +112,23 @@ const PopOver: React.FC<PopOverProps> = ({ state }) => {
   const x = state.tabRef?.getBoundingClientRect().left;
   const y = state.tabRef?.getBoundingClientRect().top;
 
+  const handleClick = (item: string) => {
+    if (state.name === "path") {
+      dispatch({ type: "set", newName: item, newStatus: "setSource" });
+    }
+    if (state.name === "tree") {
+      dispatch({ type: "set", newName: item, newStatus: "setSource" });
+    }
+    if (state.name === "flow") {
+      dispatch({ type: "set", newName: item, newStatus: "setSource" });
+    }
+  };
+
   return (
-    <StyledContainer show={state.show} onClick={() => console.log("click")}>
+    <StyledContainer show={state.show}>
       <Content ref={onRefChange} xCoor={x!} yCoor={y!}>
         {state.content.map((item, index) => (
-          <ContentItem
-            key={index}
-            onClick={() => dispatch({ type: "set", newName: item })}
-          >
+          <ContentItem key={index} onClick={() => handleClick(item)}>
             {item}
           </ContentItem>
         ))}

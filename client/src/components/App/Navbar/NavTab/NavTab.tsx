@@ -29,7 +29,6 @@ const NavTab: React.FC<NavTabProps> = (props) => {
     <StyledTab
       ref={navTabRef}
       onMouseOver={() => props.onMouseOver(props.name, navTabRef.current)}
-      //onMouseOut={() => props.onMouseOut()}
     >
       {props.children}
     </StyledTab>

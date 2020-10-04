@@ -12,6 +12,8 @@ export interface EdgeProps {
   handleClick?: (id: string) => void;
 }
 
+const EDGE_HEIGHT = 1;
+
 const StyledEdge = styled("div")<{
   left: number;
   top: number;
@@ -21,7 +23,7 @@ const StyledEdge = styled("div")<{
   position: absolute;
   left: ${(props) => props.left}px;
   top: ${(props) => props.top}px;
-  height: 1px;
+  height: ${EDGE_HEIGHT}px;
   width: ${(props) => props.width}px;
   background: #ffffff;
   transform-origin: 0%;
@@ -39,7 +41,7 @@ const Edge: React.FC<EdgeProps> = ({
   const width = getDistance(headNode.x, headNode.y, tailNode.x, tailNode.y);
   const degree = getAngleRad(headNode.x, headNode.y, tailNode.x, tailNode.y);
   const left = headNode.x;
-  const top = headNode.y - 1 / 2; /* places center of edge on node */
+  const top = headNode.y - EDGE_HEIGHT / 2; /* places center of edge on node */
 
   return (
     <StyledEdge

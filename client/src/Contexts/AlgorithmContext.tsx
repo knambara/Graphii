@@ -3,10 +3,11 @@ import React, { useReducer, createContext } from "react";
 type Action =
   | { type: "start" }
   | { type: "stop" }
-  | { type: "set"; newName: string }
-  | { type: "cancel" };
+  | { type: "set"; newName: string; newStatus: string }
+  | { type: "cancel" }
+  | { type: "setStatus"; newStatus: string };
 type Dispatch = (action: Action) => void;
-type State = { name: string | null; running: boolean };
+type State = { name: string | null; status: string | null; running: boolean };
 type AlgoProviderProps = { children: React.ReactNode };
 
 const AlgoStateContext = createContext<State | undefined>(undefined);
@@ -21,10 +22,13 @@ function algoReducer(state: State, action: Action) {
       return { ...state, running: true };
     }
     case "set": {
-      return { name: action.newName, running: false };
+      return { name: action.newName, status: action.newStatus, running: false };
+    }
+    case "setStatus": {
+      return { ...state, status: action.newStatus };
     }
     case "cancel": {
-      return { name: null, running: false };
+      return { name: null, status: null, running: false };
     }
     default: {
       throw new Error(`Unhandled action type`);
@@ -35,6 +39,7 @@ function algoReducer(state: State, action: Action) {
 function AlgoProvider({ children }: AlgoProviderProps) {
   const [state, dispatch] = useReducer(algoReducer, {
     name: null,
+    status: null,
     running: false,
   });
 

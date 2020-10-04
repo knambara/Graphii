@@ -15,48 +15,49 @@ export interface GhostEdgeProps {
   tailPosition: Coordinate;
 }
 
-const EdgeWidth = 1;
+const EDGE_HEIGHT = 1;
+
+const StyledGhostEdge = styled("div")<{
+  left: number;
+  top: number;
+  width: number;
+  degree: number;
+}>`
+  position: absolute;
+  left: ${(props) => props.left}px;
+  top: ${(props) => props.top}px;
+  height: ${EDGE_HEIGHT}px;
+  width: ${(props) => props.width}px;
+  height: ${EDGE_HEIGHT}px;
+  background: #ffffff;
+  opacity: 0.5;
+  transform-origin: 0%;
+  transform: rotate(${(props) => props.degree}rad);
+`;
 
 const GhostEdge: React.FC<GhostEdgeProps> = ({
   className,
   headNode,
   tailPosition,
 }) => {
-  const [position, setPosition] = useState<CSSProperties>();
+  const left = headNode.x;
+  const top = headNode.y - EDGE_HEIGHT / 2;
+  const width = getDistance(
+    headNode.x,
+    headNode.y,
+    tailPosition.x,
+    tailPosition.y
+  );
+  const degree = getAngleRad(
+    headNode.x,
+    headNode.y,
+    tailPosition.x,
+    tailPosition.y
+  );
 
-  useEffect(() => {
-    const length = getDistance(
-      headNode.x,
-      headNode.y,
-      tailPosition.x,
-      tailPosition.y
-    );
-    const edgeStyle = {
-      left: headNode.x,
-      top: headNode.y - EdgeWidth / 2 /* places center of edge on node */,
-      width: `${length}px`,
-    } as CSSProperties;
-
-    setPosition((prev) => edgeStyle);
-  }, [headNode, tailPosition]);
-
-  return <div className={className} style={position} />;
+  return (
+    <StyledGhostEdge left={left} top={top} width={width} degree={degree} />
+  );
 };
 
-const StyledGhostEdge = styled(GhostEdge).attrs((props) => ({
-  degree: getAngleRad(
-    props.headNode.x,
-    props.headNode.y,
-    props.tailPosition.x,
-    props.tailPosition.y
-  ),
-}))`
-  height: ${EdgeWidth}px;
-  background: #ffffff;
-  opacity: 0.5;
-  position: absolute;
-  transform-origin: 0%; /* make pivot point to the left side of edge */
-  transform: rotate(${(props) => props.degree}rad);
-`;
-
-export default React.memo(StyledGhostEdge);
+export default GhostEdge;

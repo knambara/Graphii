@@ -22,7 +22,7 @@ const StyledNav = styled("nav")<{ show: boolean }>`
 
 const popOverContent: { [string: string]: string[] } = {
   path: ["dfs", "bfs", "dijkstra", "bellman-ford", "a*"],
-  mst: ["prim", "kruskal"],
+  tree: ["prim", "kruskal"],
   flow: ["fulkerson", "karp", "dinic"],
 };
 
@@ -36,7 +36,6 @@ const initialPopOver = {
 const Navbar: React.FC<NavbarProps> = (props) => {
   const [popOver, setPopOver] = useState<PopOverState>(initialPopOver);
   const algorithmState = useAlgoState();
-  console.log(algorithmState);
 
   const showPopOver = useCallback(
     (name: string, tabRef: HTMLDivElement | null): void => {
@@ -67,7 +66,7 @@ const Navbar: React.FC<NavbarProps> = (props) => {
       <NavTab name={"path"} onMouseOver={showPopOver}>
         Path Finding
       </NavTab>
-      <NavTab name={"mst"} onMouseOver={showPopOver}>
+      <NavTab name={"tree"} onMouseOver={showPopOver}>
         Spanning Trees
       </NavTab>
       <NavTab name={"flow"} onMouseOver={showPopOver}>
