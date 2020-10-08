@@ -36,5 +36,28 @@ export function dijkstra(
     }
   }
 
-  return traversed;
+  const shortestPath = getShortestPathToNode(target, edges);
+  return [traversed, shortestPath];
+}
+
+export function getShortestPathToNode(
+  node: VertexInterface,
+  edges: EdgeInterface[]
+): EdgeInterface[] | null {
+  if (node.prev === null) {
+    return null;
+  }
+
+  const path: EdgeInterface[] = [];
+  let prev: VertexInterface | null = node.prev;
+  let curr: VertexInterface = node;
+  while (prev !== null) {
+    let edge = edges.find(
+      (edge) => edge.headNode === prev && edge.tailNode === curr
+    );
+    path.unshift(edge!);
+    curr = prev;
+    prev = curr.prev;
+  }
+  return path;
 }

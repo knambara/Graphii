@@ -2,12 +2,13 @@ import React, { useReducer, createContext } from "react";
 
 type Action =
   | { type: "start" }
-  | { type: "stop" }
-  | { type: "set"; newName: string; newStatus: string }
+  | { type: "pause" }
+  | { type: "complete" }
   | { type: "cancel" }
-  | { type: "setStatus"; newStatus: string };
+  | { type: "set"; newName: string; newStatus: string }
+  | { type: "setStatus"; newStatus: string; ready: boolean };
 type Dispatch = (action: Action) => void;
-type State = { name: string | null; status: string | null; running: boolean };
+type State = { name: string | null; status: string | null; ready: boolean };
 type AlgoProviderProps = { children: React.ReactNode };
 
 const AlgoStateContext = createContext<State | undefined>(undefined);
@@ -16,19 +17,22 @@ const AlgoDispatchContext = createContext<Dispatch | undefined>(undefined);
 function algoReducer(state: State, action: Action) {
   switch (action.type) {
     case "start": {
-      return { ...state, running: true };
+      return { ...state, status: "running", ready: true };
     }
-    case "stop": {
-      return { ...state, running: true };
+    case "pause": {
+      return { ...state, status: "paused" };
     }
-    case "set": {
-      return { name: action.newName, status: action.newStatus, running: false };
-    }
-    case "setStatus": {
-      return { ...state, status: action.newStatus };
+    case "complete": {
+      return { ...state, status: "completed" };
     }
     case "cancel": {
-      return { name: null, status: null, running: false };
+      return { name: null, status: null, ready: false };
+    }
+    case "set": {
+      return { name: action.newName, status: action.newStatus, ready: false };
+    }
+    case "setStatus": {
+      return { ...state, status: action.newStatus, ready: action.ready };
     }
     default: {
       throw new Error(`Unhandled action type`);
@@ -40,7 +44,7 @@ function AlgoProvider({ children }: AlgoProviderProps) {
   const [state, dispatch] = useReducer(algoReducer, {
     name: null,
     status: null,
-    running: false,
+    ready: false,
   });
 
   return (

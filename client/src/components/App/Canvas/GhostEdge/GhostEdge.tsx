@@ -2,7 +2,7 @@ import React, { useState, useEffect, CSSProperties } from "react";
 import styled from "styled-components";
 
 import { getAngleRad, getDistance } from "helper";
-import { NodeProps } from "Components/App/Canvas/Node";
+import { GraphNodeProps } from "Components/App/Canvas/GraphNode";
 
 export interface Coordinate {
   x: number;
@@ -11,7 +11,7 @@ export interface Coordinate {
 
 export interface GhostEdgeProps {
   className?: string;
-  headNode: NodeProps;
+  headNode: GraphNodeProps;
   tailPosition: Coordinate;
 }
 

@@ -8,6 +8,7 @@ import {
   faStepBackward,
   faPlay,
   faPause,
+  faRedo,
 } from "@fortawesome/free-solid-svg-icons";
 
 const Container = styled("div")<{ show: boolean }>`
@@ -37,11 +38,11 @@ const ConfigContainer = styled("div")`
   justify-content: center;
 `;
 
-const StyledIcon = styled(FontAwesomeIcon)`
+const StyledIcon = styled(FontAwesomeIcon)<{ clickable: boolean }>`
   font-size: 24px;
   padding: 0px 25px;
-  cursor: pointer;
-  opacity: 1;
+  cursor: ${(props) => (props.clickable ? "pointer" : "cursor")};
+  opacity: ${(props) => (props.clickable ? 1 : 0.5)};
   transition: opacity 0.3s;
 
   &:hover {
@@ -155,9 +156,35 @@ const AlgorithmBar: React.FC<{}> = () => {
       </TitleContainer>
 
       <ConfigContainer>
-        <StyledIcon icon={faStepBackward} color="white" />
-        <StyledIcon icon={faPlay} color="white" />
-        <StyledIcon icon={faStepForward} color="white" />
+        <StyledIcon
+          icon={faStepBackward}
+          color="white"
+          clickable={algoState.ready}
+        />
+        <StyledIcon
+          icon={
+            algoState.status === "completed"
+              ? faRedo
+              : algoState.status === "running"
+              ? faPause
+              : faPlay
+          }
+          color="white"
+          onClick={() => {
+            if (!algoState.ready) return;
+            algoState.status === "completed"
+              ? algoDispatch({ type: "start" })
+              : algoState.status === "running"
+              ? algoDispatch({ type: "pause" })
+              : algoDispatch({ type: "start" });
+          }}
+          clickable={algoState.ready}
+        />
+        <StyledIcon
+          icon={faStepForward}
+          color="white"
+          clickable={algoState.ready}
+        />
         <Slider type="range" />
       </ConfigContainer>
 

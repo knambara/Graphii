@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, CSSProperties } from "react";
 import styled, { keyframes } from "styled-components";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBullseye, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { faBullseye, faDotCircle } from "@fortawesome/free-solid-svg-icons";
 
-export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
+export interface GraphNodeProps extends React.HTMLAttributes<HTMLElement> {
   id: string;
   x: number;
   y: number;
@@ -19,17 +19,18 @@ export interface NodeProps extends React.HTMLAttributes<HTMLElement> {
 
 const StyledNode = styled("div")<{ left: number; top: number }>`
   position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 2;
   left: ${(props) => props.left}px;
   top: ${(props) => props.top}px;
-  height: 5px;
-  width: 5px;
+  height: 6px;
+  width: 6px;
   border-radius: 50%;
   background: #ffffff;
   cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const grow = keyframes`
@@ -41,39 +42,36 @@ const grow = keyframes`
   }
 `;
 
-const ChevronRight = styled(FontAwesomeIcon)`
+const DotCircle = styled(FontAwesomeIcon)`
   color: #21e6c1;
   position: absolute;
-  height: 3px;
-  width: 3px;
-  transform: translateX(-3px);
+  height: 6px;
+  width: 6px;
   animation: ${grow} 1s linear infinite;
   animation-direction: alternate;
+  display: inline-block;
 `;
 
 const BullsEye = styled(FontAwesomeIcon)`
   color: #ff4b5c;
   position: absolute;
-  height: 3px;
-  width: 3px;
+  height: 6px;
+  width: 6px;
   animation: ${grow} 1s linear infinite;
   animation-direction: alternate;
 `;
 
-const Node: React.FC<NodeProps> = ({
+const GraphNode: React.FC<GraphNodeProps> = ({
   id,
   x,
   y,
   handleMouseDown,
   handleMouseUp,
-  className,
   isSource,
   isTarget,
 }) => {
-  const nodeRef = useRef<React.RefObject<HTMLDivElement>>(null);
-
-  const left = x - 2.5;
-  const top = y - 2.5;
+  const left = x - 3;
+  const top = y - 3;
 
   return (
     <StyledNode
@@ -92,10 +90,10 @@ const Node: React.FC<NodeProps> = ({
         return false;
       }}
     >
-      {isSource && <ChevronRight icon={faChevronRight} />}
+      {isSource && <DotCircle icon={faDotCircle} size="10x" />}
       {isTarget && <BullsEye icon={faBullseye} />}
     </StyledNode>
   );
 };
 
-export default Node;
+export default GraphNode;
