@@ -23,22 +23,13 @@ export interface GraphEdgeProps {
 const EDGE_HEIGHT = 1.2;
 
 const StyledEdge = styled("div")<{
-  left: number;
-  top: number;
-  width: number;
-  degree: number;
   animate: boolean;
   special: boolean;
 }>`
   position: absolute;
-  left: ${(props) => props.left}px;
-  top: ${(props) => props.top}px;
-  height: ${EDGE_HEIGHT}px;
-  width: ${(props) => props.width}px;
   background: ${(props) =>
     props.animate ? "#19d3da" : props.special ? "#f1fa3c" : "#ffffff"};
   transform-origin: 0%;
-  transform: rotate(${(props) => props.degree}rad);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -92,10 +83,13 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
 
   return (
     <StyledEdge
-      width={width}
-      degree={degree}
-      left={left}
-      top={top}
+      style={{
+        left: left,
+        top: top,
+        height: EDGE_HEIGHT,
+        width: width,
+        transform: `rotate(${degree}rad)`,
+      }}
       onClick={(e) => {
         e.stopPropagation();
         handleClick!(id);

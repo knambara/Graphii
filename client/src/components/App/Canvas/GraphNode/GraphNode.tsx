@@ -17,11 +17,10 @@ export interface GraphNodeProps extends React.HTMLAttributes<HTMLElement> {
   isTarget?: boolean;
 }
 
-const StyledNode = styled("div")<{ left: number; top: number }>`
+const StyledNode = styled("div")`
   position: absolute;
   z-index: 2;
-  left: ${(props) => props.left}px;
-  top: ${(props) => props.top}px;
+
   height: 6px;
   width: 6px;
   border-radius: 50%;
@@ -70,15 +69,12 @@ const GraphNode: React.FC<GraphNodeProps> = ({
   isSource,
   isTarget,
 }) => {
-  const left = x - 3;
-  const top = y - 3;
-
   return (
     <StyledNode
-      left={left}
-      top={top}
+      style={{ left: x - 3, top: y - 3 }}
       onMouseDown={(e) => {
         e.stopPropagation();
+        e.preventDefault();
         handleMouseDown!(id);
       }}
       onMouseUp={(e) => {

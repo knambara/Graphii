@@ -159,7 +159,11 @@ const AlgorithmBar: React.FC<{}> = () => {
         <StyledIcon
           icon={faStepBackward}
           color="white"
-          clickable={algoState.ready}
+          clickable={algoState.ready && algoState.status !== "ready"}
+          onClick={() => {
+            if (!algoState.ready || algoState.status === "ready") return;
+            algoState.status === "paused" && algoDispatch({ type: "stepB" });
+          }}
         />
         <StyledIcon
           icon={
@@ -183,7 +187,11 @@ const AlgorithmBar: React.FC<{}> = () => {
         <StyledIcon
           icon={faStepForward}
           color="white"
-          clickable={algoState.ready}
+          clickable={algoState.ready && algoState.status !== "completed"}
+          onClick={() => {
+            if (!algoState.ready || algoState.status === "completed") return;
+            algoState.status === "paused" && algoDispatch({ type: "stepF" });
+          }}
         />
         <Slider type="range" />
       </ConfigContainer>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
@@ -72,6 +72,8 @@ const Canvas: React.FC = () => {
   const timer = useRef<number | null>(null);
   const index = useRef<number>(0);
   const [interval, setInterval] = useState<number>(1000);
+  const algoOutput = useRef<EdgeInterface[] | null>(null);
+  const algoPath = useRef<EdgeInterface[] | null>(null);
 
   function animateEdge(edge: EdgeInterface): void {
     setEdges((prevEdges) => {
@@ -83,6 +85,19 @@ const Canvas: React.FC = () => {
       });
     });
     return;
+  }
+
+  function unAnimateEdge(edge: EdgeInterface): void {
+    console.log("here");
+    setEdges((prevEdges) => {
+      return prevEdges.map((prevEdge) => {
+        if (prevEdge === edge) {
+          prevEdge.animate = false;
+          prevEdge.special = false;
+        }
+        return prevEdge;
+      });
+    });
   }
 
   function addSpecialEffect(edge: EdgeInterface): void {
@@ -112,22 +127,18 @@ const Canvas: React.FC = () => {
     array: EdgeInterface[],
     targetPath: EdgeInterface[]
   ): void {
-    console.log("t");
     timer.current = setTimeout(() => {
-      let edge = array[index.current];
-      animateEdge(edge);
-      index.current = index.current + 1;
-
       if (index.current < array.length) {
-        console.log(index.current);
+        let edge = array[index.current];
+        animateEdge(edge);
+        index.current = index.current + 1;
         visualize(array, targetPath);
       } else {
-        console.log("complete");
         algoDispatch({ type: "complete" });
-        clearTimeout(timer.current!);
         targetPath.forEach((edge) => {
           addSpecialEffect(edge);
         });
+        clearTimeout(timer.current!);
         index.current = 0;
       }
     }, interval);
@@ -135,6 +146,29 @@ const Canvas: React.FC = () => {
 
   function updateInterval(newInterval: number) {
     setInterval(newInterval);
+  }
+
+  function stepAlgorithmForward() {
+    if (index.current < algoOutput.current!.length) {
+      let edge = algoOutput.current![index.current];
+      animateEdge(edge);
+      index.current = index.current + 1;
+      algoDispatch({ type: "pause" });
+    } else {
+      algoDispatch({ type: "complete" });
+      algoPath.current!.forEach((edge) => {
+        addSpecialEffect(edge);
+      });
+      clearTimeout(timer.current!);
+      index.current = 0;
+    }
+  }
+
+  function stepAlgorithmBackward() {
+    index.current = index.current - 1;
+    let edge = algoOutput.current![index.current];
+    unAnimateEdge(edge);
+    algoDispatch({ type: "pause" });
   }
 
   useEffect(() => {
@@ -145,15 +179,23 @@ const Canvas: React.FC = () => {
           nodes,
           edges
         );
-        if (shortestPath === null) {
+        if (traversed === [] || shortestPath === null) {
+          algoDispatch({ type: "complete" });
           return;
         }
         resetEdges();
-        console.log("visualize");
-        visualize(traversed!, shortestPath);
+        algoOutput.current = traversed;
+        algoPath.current = shortestPath;
+        visualize(algoOutput.current!, algoPath.current);
         return;
       case "paused":
         clearTimeout(timer.current!);
+        return;
+      case "stepF":
+        stepAlgorithmForward();
+        return;
+      case "stepB":
+        stepAlgorithmBackward();
         return;
       case null:
         resetEdges();
@@ -223,8 +265,8 @@ const Canvas: React.FC = () => {
     setNodes((prevNodes) => {
       return prevNodes.map((node) => {
         if (node === mouseDownNode.current) {
-          node.x = x;
-          node.y = y;
+          node.x = Math.round(x);
+          node.y = Math.round(y);
         }
         return node;
       });
@@ -354,42 +396,40 @@ const Canvas: React.FC = () => {
     }
   };
 
-  const handleMouseMove = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (event.shiftKey && mouseDownNode.current !== null) {
-        isMovingNode.current = true;
-        let [currX, currY] = screenToWorld({
-          offsetX: transformState.offsetX,
-          offsetY: transformState.offsetY,
-          iScreenX: event.clientX,
-          iScreenY: event.clientY - MENUBAR_OFFSET,
-          scale: transformState.scale,
-        });
-        updateNodeCoordinate(mouseDownNode.current, currX, currY);
-        return;
-      }
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (event.shiftKey && mouseDownNode.current !== null) {
+      isMovingNode.current = true;
+      let [currX, currY] = screenToWorld({
+        offsetX: transformState.offsetX,
+        offsetY: transformState.offsetY,
+        iScreenX: event.clientX,
+        iScreenY: event.clientY - MENUBAR_OFFSET,
+        scale: transformState.scale,
+      });
+      updateNodeCoordinate(mouseDownNode.current, currX, currY);
+      return;
+    }
 
-      if (event.shiftKey) {
-        pan({ movementX: event.movementX, movementY: event.movementY });
-        return;
-      }
+    if (event.shiftKey) {
+      pan({ movementX: event.movementX, movementY: event.movementY });
+      return;
+    }
 
-      if (mouseDownNode.current !== null) {
-        updateGhostEdge(event);
-        return;
-      }
-    },
-    [updateGhostEdge]
-  );
+    if (mouseDownNode.current !== null) {
+      updateGhostEdge(event);
+      return;
+    }
+  };
 
-  const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
+  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     let delta = event.deltaY > 0 ? -1 : 1;
     zoom({
       pageX: event.pageX,
       pageY: event.pageY - MENUBAR_OFFSET,
       delta: delta,
     });
-  }, []);
+  };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "d") {

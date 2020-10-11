@@ -3,6 +3,8 @@ import React, { useReducer, createContext } from "react";
 type Action =
   | { type: "start" }
   | { type: "pause" }
+  | { type: "stepF" }
+  | { type: "stepB" }
   | { type: "complete" }
   | { type: "cancel" }
   | { type: "set"; newName: string; newStatus: string }
@@ -16,27 +18,25 @@ const AlgoDispatchContext = createContext<Dispatch | undefined>(undefined);
 
 function algoReducer(state: State, action: Action) {
   switch (action.type) {
-    case "start": {
+    case "start":
       return { ...state, status: "running", ready: true };
-    }
-    case "pause": {
+    case "pause":
       return { ...state, status: "paused" };
-    }
-    case "complete": {
+    case "stepF":
+      return { ...state, status: "stepF" };
+    case "stepB":
+      return { ...state, status: "stepB" };
+    case "complete":
       return { ...state, status: "completed" };
-    }
-    case "cancel": {
+    case "cancel":
       return { name: null, status: null, ready: false };
-    }
-    case "set": {
+    case "set":
       return { name: action.newName, status: action.newStatus, ready: false };
-    }
-    case "setStatus": {
+    case "setStatus":
       return { ...state, status: action.newStatus, ready: action.ready };
-    }
-    default: {
+
+    default:
       throw new Error(`Unhandled action type`);
-    }
   }
 }
 
