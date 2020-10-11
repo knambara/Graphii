@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { useAlgoState } from "Contexts/AlgorithmContext";
-import { Node, Edge } from "Components/App/Canvas";
+import { Node, Edge } from "Components/App/Container/Canvas";
 import { dijkstra } from "algorithms";
 import { EdgeInterface } from "Interfaces/EdgeInterface";
 

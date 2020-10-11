@@ -9,7 +9,7 @@ import GhostEdge, { GhostEdgeProps } from "./GhostEdge";
 import { useTransformation } from "Hooks/useTransformation";
 import { useAlgorithms } from "Hooks/useAlgorithms";
 import { useAlgoState, useAlgoDispatch } from "Contexts/AlgorithmContext";
-import { screenToWorld } from "helper";
+import { screenToWorld, getDistance } from "helper";
 
 import { VertexInterface } from "Interfaces/VertexInterface";
 import { EdgeInterface } from "Interfaces/EdgeInterface";
@@ -74,6 +74,8 @@ const Canvas: React.FC = () => {
   const [interval, setInterval] = useState<number>(1000);
   const algoOutput = useRef<EdgeInterface[] | null>(null);
   const algoPath = useRef<EdgeInterface[] | null>(null);
+
+  const [showLabel, setShowLabel] = useState<boolean>(true);
 
   function animateEdge(edge: EdgeInterface): void {
     setEdges((prevEdges) => {
@@ -297,12 +299,15 @@ const Canvas: React.FC = () => {
   const addEdge = (headNode: Node, tailNode: Node) => {
     if (edges.find((e) => e.headNode === headNode && e.tailNode === tailNode))
       return;
+    const edgeLength = Math.round(
+      getDistance(headNode.x, headNode.y, tailNode.x, tailNode.y)
+    );
 
     const newEdge: Edge = {
       id: uuidv4(),
       headNode: headNode,
       tailNode: tailNode,
-      weight: 0,
+      weight: edgeLength,
       animate: false,
       special: false,
     };
@@ -479,9 +484,11 @@ const Canvas: React.FC = () => {
             className={"edge"}
             headNode={edge.headNode}
             tailNode={edge.tailNode}
+            weight={edge.weight}
             handleClick={deleteEdge}
             animate={edge.animate}
             special={edge.special}
+            showLabel={showLabel}
           />
         );
       })}

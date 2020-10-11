@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 
-import { Node } from "Components/App/Canvas";
+import { Node } from "Components/App/Container/Canvas";
 import { getAngleRad, getDistance } from "helper";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,10 +14,12 @@ export interface GraphEdgeProps {
   id: string;
   headNode: Node;
   tailNode: Node;
+  weight: number;
   className?: string;
   handleClick?: (id: string) => void;
   animate: boolean;
   special: boolean;
+  showLabel: boolean;
 }
 
 const EDGE_HEIGHT = 1.2;
@@ -67,6 +69,19 @@ const ChevronRight = styled(FontAwesomeIcon)`
   animation: ${traverse} 0.5s linear;
 `;
 
+const Label = styled.input`
+  position: absolute;
+  display: block;
+  font-size: 5px;
+  background: transparent;
+  border: none;
+  color: white;
+  top: 2px;
+  display: inline-block;
+  text-align: center;
+  width: 100%;
+`;
+
 const GraphEdge: React.FC<GraphEdgeProps> = ({
   id,
   className,
@@ -75,11 +90,14 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
   handleClick,
   animate,
   special,
+  weight,
+  showLabel,
 }) => {
   const width = getDistance(headNode.x, headNode.y, tailNode.x, tailNode.y);
   const degree = getAngleRad(headNode.x, headNode.y, tailNode.x, tailNode.y);
   const left = headNode.x;
   const top = headNode.y - EDGE_HEIGHT / 2; /* places center of edge on node */
+  console.log(degree);
 
   return (
     <StyledEdge
@@ -104,6 +122,7 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
         size="1x"
         special={special}
       />
+      {showLabel && <Label type={"text"} value={weight} />}
     </StyledEdge>
   );
 };

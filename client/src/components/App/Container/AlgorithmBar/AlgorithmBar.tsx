@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
-import Title from "Components/App/Navbar/Title";
+import Title from "Components/App/Container/Navbar/Title";
 import { useAlgoState, useAlgoDispatch } from "Contexts/AlgorithmContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
