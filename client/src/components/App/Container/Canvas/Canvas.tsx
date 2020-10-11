@@ -9,6 +9,7 @@ import GhostEdge, { GhostEdgeProps } from "./GhostEdge";
 import { useTransformation } from "Hooks/useTransformation";
 import { useAlgorithms } from "Hooks/useAlgorithms";
 import { useAlgoState, useAlgoDispatch } from "Contexts/AlgorithmContext";
+import { useKeyState } from "Contexts/KeyContext";
 import { screenToWorld, getDistance } from "helper";
 
 import { VertexInterface } from "Interfaces/VertexInterface";
@@ -58,6 +59,14 @@ const Canvas: React.FC = () => {
   const isMovingNode = useRef<boolean>(false);
   const dKeyPressed = useRef<boolean>(false); //TODO: only works when canvas is clicked
 
+  const keyState = useKeyState();
+  const [showLabel, setShowLabel] = useState<boolean>(false);
+  useEffect(() => {
+    if (keyState.key === "w" && keyState.isPressed) {
+      setShowLabel((show) => !show);
+    }
+  }, [keyState, setShowLabel]);
+
   const algoState = useAlgoState();
   const algoDispatch = useAlgoDispatch();
   const { transformState, pan, zoom } = useTransformation(scaleProps);
@@ -74,8 +83,6 @@ const Canvas: React.FC = () => {
   const [interval, setInterval] = useState<number>(1000);
   const algoOutput = useRef<EdgeInterface[] | null>(null);
   const algoPath = useRef<EdgeInterface[] | null>(null);
-
-  const [showLabel, setShowLabel] = useState<boolean>(true);
 
   function animateEdge(edge: EdgeInterface): void {
     setEdges((prevEdges) => {

@@ -12,11 +12,13 @@ const KeyDispatchContext = createContext<Dispatch | undefined>(undefined);
 function keyReducer(state: State, action: Action) {
   switch (action.type) {
     case "press":
-      if (!(action.key in AcceptedKeys)) return { ...state };
+      console.log(action.key);
+      if (!AcceptedKeys.includes(action.key)) return { ...state };
+      console.log(action.key);
       return { key: action.key, isPressed: true };
     case "unpress":
       if (state.key !== action.key) return { ...state };
-      return { key: null, isPressed: false };
+      return { ...state, isPressed: false };
     default:
       throw new Error(`Unhandled action type`);
   }

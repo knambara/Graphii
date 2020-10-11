@@ -97,7 +97,6 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
   const degree = getAngleRad(headNode.x, headNode.y, tailNode.x, tailNode.y);
   const left = headNode.x;
   const top = headNode.y - EDGE_HEIGHT / 2; /* places center of edge on node */
-  console.log(degree);
 
   return (
     <StyledEdge
