@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 
 import { useAlgoState } from "Contexts/AlgorithmContext";
 import { Node, Edge } from "Components/App/Container/Canvas";
-import { dijkstra, dfs, bfs } from "algorithms";
+import { dijkstra, dfs, bfs, aStar } from "algorithms";
 import { EdgeInterface } from "Interfaces/EdgeInterface";
 import { VertexInterface } from "Interfaces/VertexInterface";
+import { getDistance } from "helper";
 
 type Output = EdgeInterface[][];
 
@@ -21,6 +22,15 @@ export const useAlgorithms = () => {
     setTarget(node);
   };
 
+  const getHeuristic = (nodes: Node[], target: Node) => {
+    const heuristic = new Map<VertexInterface, number>();
+    for (const node of nodes) {
+      const dist = getDistance(node.x, node.y, target.x, target.y);
+      heuristic.set(node, dist);
+    }
+    return heuristic;
+  };
+
   //TODO: different functions for Path, flow, trees
   const runAlgorithm = (
     algorithm: string,
@@ -34,6 +44,9 @@ export const useAlgorithms = () => {
         return dfs(nodes, edges, source!, target!);
       case "bfs":
         return bfs(nodes, edges, source!, target!);
+      case "a*":
+        const heuristic = getHeuristic(nodes, target!);
+        return aStar(nodes, edges, source!, target!, heuristic);
       default:
         throw new Error();
     }
