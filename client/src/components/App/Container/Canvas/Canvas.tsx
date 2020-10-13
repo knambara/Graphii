@@ -188,7 +188,7 @@ const Canvas: React.FC = () => {
           nodes,
           edges
         );
-        if (traversed === [] || shortestPath === null) {
+        if (!traversed.length || !shortestPath.length) {
           algoDispatch({ type: "complete" });
           return;
         }

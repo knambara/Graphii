@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 
 import { useAlgoState } from "Contexts/AlgorithmContext";
 import { Node, Edge } from "Components/App/Container/Canvas";
-import { dijkstra } from "algorithms";
+import { dijkstra, dfs, bfs } from "algorithms";
 import { EdgeInterface } from "Interfaces/EdgeInterface";
+import { VertexInterface } from "Interfaces/VertexInterface";
 
-type Output = (EdgeInterface[] | null)[];
+type Output = EdgeInterface[][];
 
 export const useAlgorithms = () => {
   const [source, setSource] = useState<Node | null>(null);
@@ -20,6 +21,7 @@ export const useAlgorithms = () => {
     setTarget(node);
   };
 
+  //TODO: different functions for Path, flow, trees
   const runAlgorithm = (
     algorithm: string,
     nodes: Node[],
@@ -28,6 +30,10 @@ export const useAlgorithms = () => {
     switch (algorithm) {
       case "dijkstra":
         return dijkstra(nodes, edges, source!, target!);
+      case "dfs":
+        return dfs(nodes, edges, source!, target!);
+      case "bfs":
+        return bfs(nodes, edges, source!, target!);
       default:
         throw new Error();
     }

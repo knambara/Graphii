@@ -3,6 +3,30 @@ import PriorityQueue from "Classes/PriorityQueue";
 import { VertexInterface } from "Interfaces/VertexInterface";
 import { EdgeInterface } from "Interfaces/EdgeInterface";
 
+/********** HELPER FUNCTIONS **********/
+
+function getPathToNode(
+  node: VertexInterface,
+  edges: EdgeInterface[]
+): EdgeInterface[] {
+  const path: EdgeInterface[] = [];
+  let prev: VertexInterface | null = node.prev;
+  let curr: VertexInterface = node;
+  while (prev !== null) {
+    let edge = edges.find(
+      (edge) => edge.headNode === prev && edge.tailNode === curr
+    );
+    path.unshift(edge!);
+    curr = prev;
+    console.log(curr);
+    prev = curr.prev;
+  }
+  return path;
+}
+
+/********** PATH-FINDING ALGORITHMS **********/
+// Output: EdgeInterface[][]; tuple
+
 export function dijkstra(
   vertices: Array<VertexInterface>,
   edges: Array<EdgeInterface>,
@@ -36,28 +60,93 @@ export function dijkstra(
     }
   }
 
-  const shortestPath = getShortestPathToNode(target, edges);
+  const shortestPath = getPathToNode(target, edges);
   return [traversed, shortestPath];
 }
 
-export function getShortestPathToNode(
-  node: VertexInterface,
-  edges: EdgeInterface[]
-): EdgeInterface[] | null {
-  if (node.prev === null) {
-    return null;
+export function dfs(
+  vertices: Array<VertexInterface>,
+  edges: Array<EdgeInterface>,
+  source: VertexInterface,
+  target: VertexInterface
+) {
+  const stack: VertexInterface[] = [];
+  const visited: VertexInterface[] = [];
+  const traversed: EdgeInterface[] = [];
+  let path: EdgeInterface[] = [];
+
+  for (const v of vertices) {
+    v.prev = null;
   }
 
-  const path: EdgeInterface[] = [];
-  let prev: VertexInterface | null = node.prev;
-  let curr: VertexInterface = node;
-  while (prev !== null) {
-    let edge = edges.find(
-      (edge) => edge.headNode === prev && edge.tailNode === curr
-    );
-    path.unshift(edge!);
-    curr = prev;
-    prev = curr.prev;
+  stack.push(source);
+  while (stack.length) {
+    let node: VertexInterface = stack.pop()!;
+    visited.push(node);
+
+    if (node.prev) {
+      const inEdge = edges.find(
+        (edge) => edge.headNode === node.prev && edge.tailNode === node
+      )!;
+      traversed.push(inEdge);
+    }
+
+    if (node === target) {
+      path = getPathToNode(node, edges);
+      break;
+    }
+
+    let outEdges = edges.filter((edge) => edge.headNode === node);
+    for (const edge of outEdges) {
+      if (!visited.includes(edge.tailNode)) {
+        edge.tailNode.prev = node;
+        stack.push(edge.tailNode);
+      }
+    }
   }
-  return path;
+  return [traversed, path];
 }
+
+export function bfs(
+  vertices: Array<VertexInterface>,
+  edges: Array<EdgeInterface>,
+  source: VertexInterface,
+  target: VertexInterface
+) {
+  const queue: VertexInterface[] = [];
+  const visited: VertexInterface[] = [];
+  const traversed: EdgeInterface[] = [];
+  let path: EdgeInterface[] = [];
+
+  for (const v of vertices) {
+    v.prev = null;
+  }
+
+  queue.push(source);
+  while (queue.length) {
+    let node: VertexInterface = queue.shift()!;
+    visited.push(node);
+
+    if (node.prev) {
+      const inEdge = edges.find(
+        (edge) => edge.headNode === node.prev && edge.tailNode === node
+      )!;
+      traversed.push(inEdge);
+    }
+
+    if (node === target) {
+      path = getPathToNode(node, edges);
+      break;
+    }
+
+    let outEdges = edges.filter((edge) => edge.headNode === node);
+    for (const edge of outEdges) {
+      if (!visited.includes(edge.tailNode)) {
+        edge.tailNode.prev = node;
+        queue.push(edge.tailNode);
+      }
+    }
+  }
+  return [traversed, path];
+}
+/********** SPANNING TREE ALGORITHMS **********/
