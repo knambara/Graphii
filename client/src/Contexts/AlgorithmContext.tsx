@@ -3,6 +3,7 @@ import React, { useReducer, createContext } from "react";
 type Action =
   | { type: "start" }
   | { type: "pause" }
+  | { type: "continue" }
   | { type: "stepF" }
   | { type: "stepB" }
   | { type: "complete" }
@@ -22,6 +23,8 @@ function algoReducer(state: State, action: Action) {
       return { ...state, status: "running", ready: true };
     case "pause":
       return { ...state, status: "paused" };
+    case "continue":
+      return { ...state, status: "continuing" };
     case "stepF":
       return { ...state, status: "stepF" };
     case "stepB":

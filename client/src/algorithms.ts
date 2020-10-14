@@ -190,8 +190,148 @@ export function aStar(
       }
     }
   }
-
   const shortestPath = getPathToNode(target, edges);
   return [traversed, shortestPath];
 }
+
+export function bellmanFord(
+  vertices: Array<VertexInterface>,
+  edges: Array<EdgeInterface>,
+  source: VertexInterface,
+  target: VertexInterface,
+  heuristic: Map<VertexInterface, number>
+) {
+  const traversed: EdgeInterface[] = [];
+  let path: EdgeInterface[] = [];
+
+  for (const v of vertices) {
+    v.dist = Infinity;
+    v.prev = null;
+  }
+  source.dist = 0; // Distance from source to itself
+  let relaxed = null;
+
+  for (let i = 0; i < vertices.length - 1; i++) {
+    if (relaxed !== null && !relaxed) break;
+    else {
+      relaxed = false;
+      for (const edge of edges) {
+        traversed.push(edge);
+        const u = edge.headNode;
+        const v = edge.tailNode;
+        let uvDist = u!.dist + edge.weight;
+        if (uvDist < v.dist) {
+          relaxed = true;
+          v.dist = uvDist;
+          v.prev = u; // Maintain pointers for path
+        }
+      }
+    }
+  }
+  const shortestPath = getPathToNode(target, edges);
+  return [traversed, shortestPath];
+}
+
 /********** SPANNING TREE ALGORITHMS **********/
+
+function prim(
+  vertices: Array<VertexInterface>,
+  edges: Array<EdgeInterface>,
+  source: VertexInterface
+) {
+  for (const v of vertices) {
+    v.dist = Infinity;
+    v.prev = null;
+  }
+  source.dist = 0;
+
+  //const traversed: EdgeInterface[] = [];
+  const mst: EdgeInterface[] = [];
+
+  const PQ = new PriorityQueue<VertexInterface, number>();
+  for (const v of vertices) PQ.enqueue(v, v.dist);
+
+  while (!PQ.isEmpty) {
+    const u = PQ.dequeue()!;
+    if (u.prev !== null) {
+      const edge = edges.find(
+        (edge) => edge.headNode === u.prev && edge.tailNode === u
+      );
+      mst.push(edge!);
+    }
+
+    const incidentEdges = edges.filter(
+      (e) => e.headNode === u && PQ.containsKey(e.tailNode)
+    );
+    for (const edge of incidentEdges) {
+      const v = edge.tailNode;
+      let uvDist = u.dist + edge.weight;
+      if (uvDist < v.dist) {
+        v.dist = uvDist;
+        v.prev = u; // Maintain pointers for path
+        PQ.decreaseKey(v, v.dist);
+      }
+    }
+  }
+  return mst;
+}
+
+// Path compression and parent lookup
+function findRoot(
+  node: VertexInterface,
+  parent: Map<VertexInterface, VertexInterface>
+) {
+  if (parent.get(node) !== node) {
+    parent.set(node, findRoot(parent.get(node)!, parent));
+  }
+  return parent.get(node)!;
+}
+
+function merge(
+  u: VertexInterface,
+  v: VertexInterface,
+  parent: Map<VertexInterface, VertexInterface>,
+  rank: Map<VertexInterface, number>
+) {
+  const uParent = findRoot(u, parent)!;
+  const vParent = findRoot(v, parent)!;
+  const uRank = rank.get(uParent)!;
+  const vRank = rank.get(vParent)!;
+
+  // Point v cloud to u cloud
+  if (uRank > vRank) {
+    parent.set(vParent, uParent);
+    rank.set(uParent, uRank + 1);
+  } else {
+    parent.set(uParent, vParent);
+    rank.set(vParent, vRank + 1);
+  }
+}
+
+function kruskal(
+  vertices: Array<VertexInterface>,
+  edges: Array<EdgeInterface>,
+  source: VertexInterface
+) {
+  const sortedEdges = edges.sort((e1, e2) => (e1.weight < e2.weight ? -1 : 1));
+  const parent = new Map<VertexInterface, VertexInterface>();
+  const rank = new Map<VertexInterface, number>();
+
+  vertices.forEach((vertex) => {
+    parent.set(vertex, vertex);
+    rank.set(vertex, 0);
+  });
+
+  const mst: EdgeInterface[] = [];
+  for (const edge of sortedEdges) {
+    const u = edge.headNode;
+    const v = edge.tailNode;
+    if (findRoot(u, parent) !== findRoot(v, parent)) {
+      mst.push(edge);
+      merge(u, v, parent, rank);
+    }
+  }
+  return mst;
+}
+
+/********** MAX-FLOW ALGORITHMS **********/

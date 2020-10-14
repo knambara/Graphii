@@ -169,6 +169,10 @@ class PriorityQueue<K, V> {
     return key;
   }
 
+  public containsKey(key: K) {
+    return this.keyToNode.has(key);
+  }
+
   public isEmpty() {
     return this.root === null;
   }

@@ -183,6 +183,7 @@ const Canvas: React.FC = () => {
   useEffect(() => {
     switch (algoState.status) {
       case "running":
+        resetEdges();
         const [traversed, shortestPath] = runAlgorithm(
           algoState.name!,
           nodes,
@@ -192,13 +193,15 @@ const Canvas: React.FC = () => {
           algoDispatch({ type: "complete" });
           return;
         }
-        resetEdges();
         algoOutput.current = traversed;
         algoPath.current = shortestPath;
         visualize(algoOutput.current!, algoPath.current);
         return;
       case "paused":
         clearTimeout(timer.current!);
+        return;
+      case "continuing":
+        visualize(algoOutput.current!, algoPath.current!);
         return;
       case "stepF":
         stepAlgorithmForward();

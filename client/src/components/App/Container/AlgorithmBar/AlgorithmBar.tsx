@@ -169,18 +169,21 @@ const AlgorithmBar: React.FC<{}> = () => {
           icon={
             algoState.status === "completed"
               ? faRedo
-              : algoState.status === "running"
+              : algoState.status === "running" ||
+                algoState.status === "continuing"
               ? faPause
               : faPlay
           }
           color="white"
           onClick={() => {
             if (!algoState.ready) return;
-            algoState.status === "completed"
+            algoState.status === "ready" || algoState.status === "completed"
               ? algoDispatch({ type: "start" })
-              : algoState.status === "running"
+              : algoState.status === "running" ||
+                algoState.status === "continuing"
               ? algoDispatch({ type: "pause" })
-              : algoDispatch({ type: "start" });
+              : algoState.status === "paused" &&
+                algoDispatch({ type: "continue" });
           }}
           clickable={algoState.ready}
         />
