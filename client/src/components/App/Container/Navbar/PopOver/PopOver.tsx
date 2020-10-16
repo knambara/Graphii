@@ -114,13 +114,28 @@ const PopOver: React.FC<PopOverProps> = ({ state }) => {
 
   const handleClick = (item: string) => {
     if (state.name === "path") {
-      dispatch({ type: "set", newName: item, newStatus: "setSource" });
+      dispatch({
+        type: "set",
+        newName: item,
+        category: state.name,
+        newStatus: "setSource",
+      });
     }
     if (state.name === "tree") {
-      dispatch({ type: "set", newName: item, newStatus: "setSource" });
+      dispatch({
+        type: "set",
+        newName: item,
+        category: state.name,
+        newStatus: "setSource",
+      });
     }
     if (state.name === "flow") {
-      dispatch({ type: "set", newName: item, newStatus: "setSource" });
+      dispatch({
+        type: "set",
+        newName: item,
+        category: state.name,
+        newStatus: "setSource",
+      });
     }
   };
 

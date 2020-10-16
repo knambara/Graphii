@@ -11,12 +11,17 @@ import {
   faRedo,
 } from "@fortawesome/free-solid-svg-icons";
 
-const Container = styled("div")<{ show: boolean }>`
+const Container = styled("div")<{ show: boolean; category: string | null }>`
   top: -200px;
   transform: translateY(${(props) => (props.show ? 200 : -200)}px);
   transition: transform 0.5s;
   display: flex;
-  background: #00b8a9;
+  background: ${(props) =>
+    props.category === "path"
+      ? "#00b8a9"
+      : props.category === "tree"
+      ? "#b8de6f"
+      : "#00b8a9"};
   padding: 10px 25px;
   align-items: center;
   width: 100%;
@@ -26,10 +31,6 @@ const Container = styled("div")<{ show: boolean }>`
 
 const TitleContainer = styled("div")`
   flex: 1;
-`;
-
-const AlgorithmTitle = styled("h2")`
-  color: white;
 `;
 
 const ConfigContainer = styled("div")`
@@ -150,7 +151,7 @@ const AlgorithmBar: React.FC<{}> = () => {
   }, [algoState]);
 
   return (
-    <Container show={algoState.name !== null}>
+    <Container show={algoState.name !== null} category={algoState.category}>
       <TitleContainer>
         <Title>{algoState.name}</Title>
       </TitleContainer>

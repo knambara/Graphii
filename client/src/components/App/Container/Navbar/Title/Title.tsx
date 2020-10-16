@@ -4,7 +4,7 @@ import styled from "styled-components";
 interface TitleProps {}
 
 const StyledTitle = styled.h1`
-  color: #f6f9fc;
+  color: #ffffff;
   font-family: "Montserrat", sans-serif;
   margin-top: 1em;
   margin-bottom: 1em;

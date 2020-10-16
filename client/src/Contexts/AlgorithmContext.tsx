@@ -8,10 +8,15 @@ type Action =
   | { type: "stepB" }
   | { type: "complete" }
   | { type: "cancel" }
-  | { type: "set"; newName: string; newStatus: string }
+  | { type: "set"; newName: string; category: string | null; newStatus: string }
   | { type: "setStatus"; newStatus: string; ready: boolean };
 type Dispatch = (action: Action) => void;
-type State = { name: string | null; status: string | null; ready: boolean };
+type State = {
+  name: string | null;
+  category: string | null;
+  status: string | null;
+  ready: boolean;
+};
 type AlgoProviderProps = { children: React.ReactNode };
 
 const AlgoStateContext = createContext<State | undefined>(undefined);
@@ -32,9 +37,14 @@ function algoReducer(state: State, action: Action) {
     case "complete":
       return { ...state, status: "completed" };
     case "cancel":
-      return { name: null, status: null, ready: false };
+      return { name: null, category: null, status: null, ready: false };
     case "set":
-      return { name: action.newName, status: action.newStatus, ready: false };
+      return {
+        name: action.newName,
+        category: action.category,
+        status: action.newStatus,
+        ready: false,
+      };
     case "setStatus":
       return { ...state, status: action.newStatus, ready: action.ready };
 
@@ -46,6 +56,7 @@ function algoReducer(state: State, action: Action) {
 function AlgoProvider({ children }: AlgoProviderProps) {
   const [state, dispatch] = useReducer(algoReducer, {
     name: null,
+    category: null,
     status: null,
     ready: false,
   });

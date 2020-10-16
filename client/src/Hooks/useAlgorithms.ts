@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAlgoState } from "Contexts/AlgorithmContext";
 import { Node, Edge } from "Components/App/Container/Canvas";
 import { dijkstra, dfs, bfs, aStar } from "algorithms";
+import { prim, kruskal } from "algorithms";
 import { EdgeInterface } from "Interfaces/EdgeInterface";
 import { VertexInterface } from "Interfaces/VertexInterface";
 import { getDistance } from "helper";
@@ -47,6 +48,10 @@ export const useAlgorithms = () => {
       case "a*":
         const heuristic = getHeuristic(nodes, target!);
         return aStar(nodes, edges, source!, target!, heuristic);
+      case "prim":
+        return prim(nodes, edges, source!);
+      case "kruskal":
+        return kruskal(nodes, edges, source!);
       default:
         throw new Error();
     }
