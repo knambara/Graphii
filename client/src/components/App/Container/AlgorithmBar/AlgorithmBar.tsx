@@ -11,17 +11,16 @@ import {
   faRedo,
 } from "@fortawesome/free-solid-svg-icons";
 
-const Container = styled("div")<{ show: boolean; category: string | null }>`
+const Container = styled("div")<{
+  show: boolean;
+  color: string;
+  category: string | null;
+}>`
   top: -200px;
   transform: translateY(${(props) => (props.show ? 200 : -200)}px);
   transition: transform 0.5s;
   display: flex;
-  background: ${(props) =>
-    props.category === "path"
-      ? "#00b8a9"
-      : props.category === "tree"
-      ? "#b8de6f"
-      : "#00b8a9"};
+  background: ${(props) => props.color};
   padding: 10px 25px;
   align-items: center;
   width: 100%;
@@ -90,7 +89,7 @@ const fadeIn = keyframes`
   }
 `;
 
-const MessageContainer = styled("div")<{}>`
+const MessageContainer = styled("div")`
   flex: 2;
   display: flex;
   justify-content: center;
@@ -105,11 +104,11 @@ const RightContainer = styled("div")`
   flex: 1;
 `;
 
-const CancelButton = styled("button")`
+const CancelButton = styled("button")<{ color: string }>`
   background-color: white;
   border: none;
   border-radius: 1rem;
-  color: #00b8a9;
+  color: ${(props) => props.color};
   padding: 16px 32px;
   text-align: center;
   text-decoration: none;
@@ -127,31 +126,70 @@ const CancelButton = styled("button")`
   }
 `;
 
-const AlgorithmBar: React.FC<{}> = () => {
+const AlgorithmBar: React.FC<{ changeSpeed: (value: number) => void }> = ({
+  changeSpeed,
+}) => {
   const algoState = useAlgoState();
   const algoDispatch = useAlgoDispatch();
 
   const [message, setMessage] = useState<string>("");
+  const [color, setColor] = useState<string>("");
 
   useEffect(() => {
     switch (algoState.status) {
       case "setSource": {
-        setMessage((prev) => "Set source node.");
+        let msg =
+          algoState.category === "path"
+            ? "Select start node."
+            : algoState.category === "tree"
+            ? "Select root node."
+            : "Select source node.";
+        setMessage((prev) => msg);
         return;
       }
       case "setTarget": {
-        setMessage((prev) => "Set target node.");
+        let msg =
+          algoState.category === "path"
+            ? "Select destination node."
+            : "Select sink node.";
+        setMessage((prev) => msg);
         return;
       }
-      case "ready": {
+      case "ready":
         setMessage((prev) => "Visualize!");
         return;
-      }
+      case "running":
+        setMessage("Visualize!");
+        return;
+      case "completed":
+        setMessage(`Completed; ${algoState.value}`);
+        return;
+      default:
+        setMessage(algoState.status!);
+        return;
     }
-  }, [algoState]);
+  }, [algoState.status]);
+
+  useEffect(() => {
+    switch (algoState.category) {
+      case "path":
+        setColor((prev) => "#00b8a9");
+        return;
+      case "tree":
+        setColor((prev) => "#b8de6f");
+        return;
+      case "flow":
+        setColor((prev) => "#4c6ef5");
+        return;
+    }
+  }, [algoState.category]);
 
   return (
-    <Container show={algoState.name !== null} category={algoState.category}>
+    <Container
+      show={algoState.name !== null}
+      color={color}
+      category={algoState.category}
+    >
       <TitleContainer>
         <Title>{algoState.name}</Title>
       </TitleContainer>
@@ -197,13 +235,23 @@ const AlgorithmBar: React.FC<{}> = () => {
             algoState.status === "paused" && algoDispatch({ type: "stepF" });
           }}
         />
-        <Slider type="range" />
+        <Slider
+          type="range"
+          min={0.5}
+          max={3}
+          defaultValue={1}
+          step={0.01}
+          onChange={(e) => changeSpeed(parseFloat(e.target.value))}
+        />
       </ConfigContainer>
 
       <MessageContainer>{message}</MessageContainer>
 
       <RightContainer>
-        <CancelButton onClick={() => algoDispatch({ type: "cancel" })}>
+        <CancelButton
+          color={color}
+          onClick={() => algoDispatch({ type: "cancel" })}
+        >
           Cancel
         </CancelButton>
       </RightContainer>

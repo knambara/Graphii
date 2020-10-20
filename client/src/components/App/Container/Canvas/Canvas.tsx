@@ -15,6 +15,14 @@ import { screenToWorld, getDistance } from "helper";
 import { VertexInterface } from "Interfaces/VertexInterface";
 import { EdgeInterface } from "Interfaces/EdgeInterface";
 
+import { Tuple, PathOutput, MaxFlowOutput } from "algorithms";
+
+interface CanvasProps {
+  clearGraphs: boolean;
+  offClear: () => void;
+  speed: number;
+}
+
 // TODO: Fix
 const MENUBAR_OFFSET = 97;
 
@@ -47,12 +55,16 @@ export interface Edge extends EdgeInterface {
   headNode: Node;
   tailNode: Node;
   animation: string | null;
+  optionalValue: number | null;
 }
 
-const Canvas: React.FC = () => {
+const Canvas: React.FC<CanvasProps> = ({ clearGraphs, offClear, speed }) => {
   const [nodes, setNodes] = useState<Array<Node>>([]);
   const [edges, setEdges] = useState<Array<Edge>>([]);
   const [ghostEdge, setGhostEdge] = useState<GhostEdgeProps | null>(null);
+
+  const mouseIsHeld = useRef<boolean>(false);
+  const mouseMoved = useRef<boolean>(false);
 
   const mouseDownNode = useRef<Node | null>(null);
   const isMovingNode = useRef<boolean>(false);
@@ -60,6 +72,7 @@ const Canvas: React.FC = () => {
 
   const keyState = useKeyState();
   const [showLabel, setShowLabel] = useState<boolean>(false);
+
   useEffect(() => {
     if (keyState.key === "w" && keyState.isPressed) {
       setShowLabel((show) => !show);
@@ -74,40 +87,43 @@ const Canvas: React.FC = () => {
     target,
     setSourceNode,
     setTargetNode,
-    runAlgorithm,
+    runPathAlgorithm,
+    runTreeAlgorithm,
+    runFlowAlgorithm,
+    checkConnectedComponents,
   } = useAlgorithms();
+
+  useEffect(() => {
+    for (let i = 0; i < 20; i++) {
+      zoom({
+        pageX: window.innerWidth / 2,
+        pageY: (window.innerHeight - MENUBAR_OFFSET) / 2,
+        delta: 1,
+      });
+    }
+    return;
+  }, []);
 
   const timer = useRef<number | null>(null);
   const index = useRef<number>(0);
-  const [interval, setInterval] = useState<number>(1000);
-  const algoOutput = useRef<EdgeInterface[] | null>(null);
+  const interval = useRef<number>(1000);
+  const algoOutput = useRef<
+    EdgeInterface[] | Tuple<EdgeInterface, number>[] | null
+  >(null);
   const algoPath = useRef<EdgeInterface[] | null>(null);
+  let maxFlowOutput = 0;
 
-  function visualize(
-    array: EdgeInterface[],
-    targetPath: EdgeInterface[]
-  ): void {
-    timer.current = setTimeout(() => {
-      if (index.current < array.length) {
-        let edge = array[index.current];
-        setEdgeAnimation("regular", edge);
-        index.current = index.current + 1;
-        visualize(array, targetPath);
-      } else {
-        algoDispatch({ type: "complete" });
-        targetPath.forEach((edge) => {
-          setEdgeAnimation("special", edge);
-        });
-        clearTimeout(timer.current!);
-        index.current = 0;
-      }
-    }, interval);
-  }
-
-  function setEdgeAnimation(animation: string | null, edge: EdgeInterface) {
+  function setEdgeAnimation(
+    animation: string | null,
+    edge: EdgeInterface,
+    optional: number | null = null
+  ) {
     setEdges((E) =>
       E.map((e) => {
-        if (e === edge) e.animation = animation;
+        if (e === edge) {
+          e.animation = animation;
+          if (algoState.category === "flow") e.optionalValue = optional;
+        }
         return e;
       })
     );
@@ -117,9 +133,45 @@ const Canvas: React.FC = () => {
     setEdges((E) =>
       E.map((e) => {
         e.animation = null;
+        e.optionalValue = 0;
         return e;
       })
     );
+  }
+
+  useEffect(() => {
+    interval.current = 1000 / speed;
+    // async function test() {
+    //   await algoDispatch({ type: "pause" });
+    //   algoDispatch({ type: "continue" });
+    // }
+    if (algoState.status === "running") {
+      algoDispatch({ type: "pause" });
+      algoDispatch({ type: "continue" });
+    }
+  }, [speed]);
+
+  function visualizePath(
+    array: EdgeInterface[],
+    targetPath: EdgeInterface[]
+  ): void {
+    timer.current = setTimeout(() => {
+      if (index.current < array.length) {
+        let edge = array[index.current];
+        setEdgeAnimation("regular", edge);
+        index.current = index.current + 1;
+        visualizePath(array, targetPath);
+      } else {
+        let length = 0;
+        targetPath.forEach((edge) => {
+          setEdgeAnimation("special", edge);
+          length += edge.weight;
+        });
+        algoDispatch({ type: "complete", newValue: `Length: ${length}` });
+        clearTimeout(timer.current!);
+        index.current = 0;
+      }
+    }, interval.current);
   }
 
   function visualizeMST(array: EdgeInterface[], targetPath: EdgeInterface[]) {
@@ -134,26 +186,70 @@ const Canvas: React.FC = () => {
         index.current = index.current + 1;
         visualizeMST(array, targetPath);
       } else {
-        algoDispatch({ type: "complete" });
+        let weight = 0;
+        targetPath.forEach((edge) => (weight += edge.weight));
+        algoDispatch({ type: "complete", newValue: `Weight: ${weight}` });
         clearTimeout(timer.current!);
         index.current = 0;
       }
-    }, interval);
+    }, interval.current);
+  }
+
+  function visualizeMaxFlow(
+    traversed: Tuple<EdgeInterface, number>[],
+    maxFlow: number
+  ) {
+    timer.current = setTimeout(() => {
+      if (index.current < traversed.length) {
+        let [edge, flow] = traversed[index.current];
+
+        setEdgeAnimation("regular", edge, flow);
+        index.current = index.current + 1;
+        visualizeMaxFlow(traversed, maxFlow);
+      } else {
+        algoDispatch({ type: "complete", newValue: `Max-Flow: ${maxFlow}` });
+        clearTimeout(timer.current!);
+        index.current = 0;
+      }
+    }, interval.current);
   }
 
   function stepAlgorithmForward() {
     if (index.current < algoOutput.current!.length) {
       // Simply step forward if algorithm has not completed
-      let edge = algoOutput.current![index.current];
-      setEdgeAnimation("regular", edge);
+      //let edge: EdgeInterface | Tuple<EdgeInterface, number> | null;
+      if (algoState.category === "path" || algoState.category === "tree") {
+        let edge = algoOutput.current![index.current] as EdgeInterface;
+        setEdgeAnimation("regular", edge);
+      }
+      if (algoState.category === "flow") {
+        let output = algoOutput.current![index.current];
+        let [edge, saturation] = output as Tuple<EdgeInterface, number>;
+        setEdgeAnimation("regular", edge, saturation);
+      }
       index.current = index.current + 1;
       algoDispatch({ type: "pause" });
     } else {
       // Otherwise, dispatch complete
-      algoDispatch({ type: "complete" });
       algoPath.current!.forEach((edge) => {
         setEdgeAnimation("special", edge);
       });
+      if (algoState.category === "path") {
+        let length = 0;
+        algoPath.current!.forEach((edge) => (length += edge.weight));
+        algoDispatch({ type: "complete", newValue: `Distance: ${length}` });
+      }
+      if (algoState.category === "tree") {
+        let weight = 0;
+        algoPath.current!.forEach((edge) => (weight += edge.weight));
+        algoDispatch({ type: "complete", newValue: `Weight: ${weight}` });
+      }
+      if (algoState.category === "flow") {
+        algoDispatch({
+          type: "complete",
+          newValue: `Max-Flow: ${maxFlowOutput}`,
+        });
+      }
       clearTimeout(timer.current!);
       index.current = 0;
     }
@@ -162,48 +258,97 @@ const Canvas: React.FC = () => {
   function stepAlgorithmBackward() {
     if (algoState.status !== "completed") {
       // Simply step back if algorithm has not completed
+      if (algoState.category === "path" || algoState.category === "tree") {
+        let edge = algoOutput.current![index.current] as EdgeInterface;
+        setEdgeAnimation(null, edge);
+      }
+      if (algoState.category === "flow") {
+        let output = algoOutput.current![index.current];
+        let [edge, saturation] = output as Tuple<EdgeInterface, number>;
+        setEdgeAnimation(null, edge, saturation);
+      }
       index.current = index.current - 1;
-      let edge = algoOutput.current![index.current];
-      setEdgeAnimation(null, edge);
       algoDispatch({ type: "pause" });
     } else {
       // Otherwise get rid of the special animation for completed edges
-      algoPath.current!.forEach((edge) => setEdgeAnimation("regular", edge));
-      index.current = algoOutput.current!.length;
+      if (algoState.category === "path" || algoState.category === "tree") {
+        algoPath.current!.forEach((edge) => setEdgeAnimation("regular", edge));
+        index.current = algoOutput.current!.length;
+      }
+      if (algoState.category === "flow") {
+        //bc no special effect for flow
+        let output = algoOutput.current![index.current];
+        let [edge, saturation] = output as Tuple<EdgeInterface, number>;
+        setEdgeAnimation(null, edge, saturation);
+        index.current = index.current - 1;
+      }
       algoDispatch({ type: "pause" });
     }
   }
 
   useEffect(() => {
     switch (algoState.status) {
+      case "setSource":
+        setSourceNode(null);
+        setTargetNode(null);
+        return;
       case "running":
-        resetAllEdgeAnimation();
-        const [traversed, shortestPath] = runAlgorithm(
-          algoState.name!,
-          nodes,
-          edges
-        );
-        if (!traversed.length || !shortestPath.length) {
-          algoDispatch({ type: "complete" });
+        if (index.current === 0) resetAllEdgeAnimation();
+        if (
+          target !== null &&
+          !checkConnectedComponents(nodes, edges, source!, target!)
+        ) {
+          algoDispatch({
+            type: "error",
+            newStatus: "Error: Nodes must be connected.",
+          });
           return;
         }
-        algoOutput.current = traversed;
-        algoPath.current = shortestPath;
 
-        if (algoState.category === "path")
-          visualize(algoOutput.current!, algoPath.current);
-        if (algoState.category === "tree")
+        if (algoState.category === "path") {
+          const [traversed, shortestPath] = runPathAlgorithm(
+            algoState.name!,
+            nodes,
+            edges
+          );
+          if (!traversed.length || !shortestPath.length) {
+            algoDispatch({ type: "error", newStatus: "Error: No path found" });
+            return;
+          }
+          algoOutput.current = traversed;
+          algoPath.current = shortestPath;
+          visualizePath(algoOutput.current!, algoPath.current);
+        } else if (algoState.category === "tree") {
+          const [traversed, shortestPath] = runTreeAlgorithm(
+            algoState.name!,
+            nodes,
+            edges
+          );
+          if (!traversed.length || !shortestPath.length) {
+            algoDispatch({ type: "error", newStatus: "Error: No path found" });
+            return;
+          }
+          algoOutput.current = traversed;
+          algoPath.current = shortestPath;
           visualizeMST(algoOutput.current!, algoPath.current);
+        } else if (algoState.category === "flow") {
+          const [traversed, maxFlow] = runFlowAlgorithm(
+            algoState.name!,
+            nodes,
+            edges
+          );
+          if (!traversed.length) {
+            algoDispatch({ type: "error", newStatus: "Error: No path found" });
+            return;
+          }
+          algoOutput.current = traversed;
+          maxFlowOutput = maxFlow;
+          visualizeMaxFlow(algoOutput.current!, maxFlow);
+        }
         return;
 
       case "paused":
         clearTimeout(timer.current!);
-        return;
-      case "continuing":
-        if (algoState.category === "path")
-          visualize(algoOutput.current!, algoPath.current!);
-        if (algoState.category === "tree")
-          visualizeMST(algoOutput.current!, algoPath.current!);
         return;
       case "stepF":
         stepAlgorithmForward();
@@ -216,6 +361,13 @@ const Canvas: React.FC = () => {
         return;
     }
   }, [algoState.status]);
+
+  useEffect(() => {
+    if (clearGraphs) {
+      nodes.forEach((node) => deleteNode(node.id));
+      offClear();
+    }
+  }, [clearGraphs]);
 
   const setMouseDownNode = (nodeID: string | null): void => {
     if (nodeID === null) {
@@ -251,6 +403,8 @@ const Canvas: React.FC = () => {
   };
 
   const deleteNode = (nodeID: string) => {
+    if (algoState.ready) return;
+
     const node = nodes.find((n) => n.id === nodeID);
     if (node === undefined) return;
 
@@ -321,15 +475,19 @@ const Canvas: React.FC = () => {
       tailNode: tailNode,
       weight: edgeLength,
       animation: null,
+      optionalValue: 0,
     };
     updateIncidentEdges(headNode, tailNode, newEdge);
     setEdges((prevEdges) => [...prevEdges, newEdge]);
   };
 
   const deleteEdge = (edgeID: string): void => {
-    setEdges((prevEdges) => {
-      return prevEdges.filter((e) => e.id !== edgeID);
-    });
+    if (algoState.ready) return;
+    if (dKeyPressed.current) {
+      setEdges((prevEdges) => {
+        return prevEdges.filter((e) => e.id !== edgeID);
+      });
+    }
   };
 
   const deleteIncidentEdges = (node: Node): void => {
@@ -338,6 +496,17 @@ const Canvas: React.FC = () => {
       return prevEdges.filter(
         (prevEdge) => !incidentEdgeIDs.includes(prevEdge.id)
       );
+    });
+  };
+
+  const updateEdgeWeight = (edgeID: string, newWeight: number) => {
+    setEdges((prevEdges) => {
+      return prevEdges.map((edge) => {
+        if (edgeID === edge.id) {
+          edge.weight = newWeight;
+        }
+        return edge;
+      });
     });
   };
 
@@ -405,6 +574,12 @@ const Canvas: React.FC = () => {
   const handleMouseUp = (event: React.MouseEvent<HTMLDivElement>) => {
     if (mouseDownNode.current !== null) {
       setMouseDownNode(null);
+      mouseIsHeld.current = false;
+      return;
+    }
+    if (mouseIsHeld.current && mouseMoved.current) {
+      mouseIsHeld.current = false;
+      mouseMoved.current = false;
       return;
     }
     if (mouseDownNode.current === null) {
@@ -412,6 +587,7 @@ const Canvas: React.FC = () => {
         screenX: event.clientX,
         screenY: event.clientY - MENUBAR_OFFSET,
       });
+      mouseIsHeld.current = false;
     }
   };
 
@@ -430,7 +606,8 @@ const Canvas: React.FC = () => {
       return;
     }
 
-    if (event.shiftKey) {
+    if (mouseIsHeld.current) {
+      mouseMoved.current = true;
       pan({ movementX: event.movementX, movementY: event.movementY });
       return;
     }
@@ -462,8 +639,15 @@ const Canvas: React.FC = () => {
     }
   };
 
+  const handleMouseDown = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    mouseIsHeld.current = true;
+  };
+
   return (
     <StyledDiv
+      onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
       onWheel={handleWheel}
@@ -502,6 +686,9 @@ const Canvas: React.FC = () => {
             handleClick={deleteEdge}
             showLabel={showLabel}
             animation={edge.animation}
+            optionalValue={edge.optionalValue}
+            interval={interval.current}
+            updateEdgeWeight={updateEdgeWeight}
           />
         );
       })}

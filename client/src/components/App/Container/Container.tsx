@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { useKeyDispatch } from "Contexts/KeyContext";
 
@@ -18,6 +18,9 @@ const StyledDiv = styled.div`
 `;
 
 const Container: React.FC<ContainerProps> = () => {
+  const [clear, setClear] = useState<boolean>(false);
+  const [speed, setSpeed] = useState<number>(1);
+
   const keyDispatch = useKeyDispatch();
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -28,11 +31,23 @@ const Container: React.FC<ContainerProps> = () => {
     keyDispatch({ type: "unpress", key: event.key });
   };
 
+  const setClearTrue = () => {
+    setClear((prev) => true);
+  };
+
+  const setClearFalse = () => {
+    setClear((prev) => false);
+  };
+
+  const handleChangeSpeed = (newValue: number) => {
+    setSpeed((prev) => newValue);
+  };
+
   return (
     <StyledDiv onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
-      <Navbar />
-      <AlgorithmBar />
-      <Canvas />
+      <Navbar onClear={setClearTrue} />
+      <AlgorithmBar changeSpeed={handleChangeSpeed} />
+      <Canvas clearGraphs={clear} offClear={setClearFalse} speed={speed} />
     </StyledDiv>
   );
 };

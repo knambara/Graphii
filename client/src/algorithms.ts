@@ -3,6 +3,12 @@ import PriorityQueue from "Classes/PriorityQueue";
 import { VertexInterface } from "Interfaces/VertexInterface";
 import { EdgeInterface } from "Interfaces/EdgeInterface";
 import { getDistance } from "helper";
+import { Edge } from "Components/App/Container/Canvas";
+
+/********** OUTPUT TYPES **********/
+export type Tuple<T, N> = [T, N];
+export type PathOutput = Tuple<EdgeInterface[], EdgeInterface[]>;
+export type MaxFlowOutput = Tuple<Tuple<EdgeInterface, number>[], number>;
 
 /********** HELPER FUNCTIONS **********/
 
@@ -114,6 +120,43 @@ function getResidualGraph(V: Array<VertexInterface>, E: Array<EdgeInterface>) {
   return { V: V, E: residualEdges };
 }
 
+export function getConnectedComponents(
+  vertices: Array<VertexInterface>,
+  edges: Array<EdgeInterface>
+) {
+  const cc = new Map<VertexInterface, number>();
+  const visited = new Set<VertexInterface>();
+
+  let ccNum = 0;
+  vertices.forEach((v) => {
+    if (!visited.has(v)) {
+      ccNum++;
+      explore(v, edges, visited, cc, ccNum);
+    }
+  });
+
+  return cc;
+}
+
+function explore(
+  v: VertexInterface,
+  E: Array<EdgeInterface>,
+  visited: Set<VertexInterface>,
+  cc: Map<VertexInterface, number>,
+  ccNum: number
+) {
+  visited.add(v);
+  cc.set(v, ccNum);
+  const incidentEdges = E.filter((e) => e.headNode === v || e.tailNode === v);
+
+  incidentEdges.forEach((e) => {
+    let neighbor = e.headNode === v ? e.tailNode : e.headNode;
+    if (!visited.has(neighbor)) {
+      explore(neighbor, E, visited, cc, ccNum);
+    }
+  });
+}
+
 /********** PATH-FINDING ALGORITHMS **********/
 // Output: EdgeInterface[][]; tuple
 
@@ -122,7 +165,7 @@ export function dijkstra(
   edges: Array<EdgeInterface>,
   source: VertexInterface,
   target: VertexInterface
-) {
+): PathOutput {
   for (const v of vertices) {
     v.dist = Infinity;
     v.prev = null;
@@ -161,7 +204,7 @@ export function dfs(
   edges: Array<EdgeInterface>,
   source: VertexInterface,
   target: VertexInterface
-) {
+): PathOutput {
   const stack: VertexInterface[] = [];
   const visited: VertexInterface[] = [];
   const traversed: EdgeInterface[] = [];
@@ -204,7 +247,7 @@ export function bfs(
   edges: Array<EdgeInterface>,
   source: VertexInterface,
   target: VertexInterface
-) {
+): PathOutput {
   const queue: VertexInterface[] = [];
   const visited: VertexInterface[] = [];
   const traversed: EdgeInterface[] = [];
@@ -248,7 +291,7 @@ export function aStar(
   source: VertexInterface,
   target: VertexInterface,
   heuristic: Map<VertexInterface, number>
-) {
+): PathOutput {
   for (const v of vertices) {
     v.dist = Infinity;
     v.prev = null;
@@ -327,7 +370,7 @@ export function prim(
   vertices: Array<VertexInterface>,
   edges: Array<EdgeInterface>,
   source: VertexInterface
-) {
+): PathOutput {
   for (const v of vertices) {
     v.dist = Infinity;
     v.prev = null;
@@ -387,7 +430,7 @@ export function kruskal(
   vertices: Array<VertexInterface>,
   edges: Array<EdgeInterface>,
   source: VertexInterface
-) {
+): PathOutput {
   const sortedEdges = edges.sort((e1, e2) => (e1.weight < e2.weight ? -1 : 1));
   const parent = new Map<VertexInterface, VertexInterface>();
   const rank = new Map<VertexInterface, number>();
@@ -418,10 +461,10 @@ export function fulkerson(
   edges: Array<EdgeInterface>,
   source: VertexInterface,
   sink: VertexInterface
-) {
+): MaxFlowOutput {
   const { V: residualV, E: residualE } = getResidualGraph(vertices, edges);
   let maxFlow = 0;
-  let traversed: (EdgeInterface | number | undefined)[][] = [];
+  let traversed: Tuple<EdgeInterface, number>[] = [];
 
   // while path exists from source to sink, augment flow
   while (findAugmentingPath(residualV, residualE, source, sink)) {
@@ -439,7 +482,7 @@ export function fulkerson(
 
     let v = sink;
     // update residual capacities of edges and backwards edges in path
-    let path = [];
+    let path: Tuple<EdgeInterface, number>[] = [];
     while (v !== source) {
       let u = v.prev;
       let residualForwardEdge = residualE.find(
@@ -453,14 +496,13 @@ export function fulkerson(
       v = v.prev!;
 
       let edgeFlow = residualForwardEdge.weight - residualForwardEdge.capacity;
-      let saturation = edgeFlow / residualForwardEdge.weight;
+      //let saturation = edgeFlow / residualForwardEdge.weight;
       let realEdge = edges.find(
         (e) =>
           e.headNode === residualForwardEdge.headNode &&
           e.tailNode === residualForwardEdge.tailNode
-      );
-      path = [];
-      path.unshift([realEdge, saturation]);
+      )!;
+      path.unshift([realEdge, edgeFlow]);
     }
     traversed = [...traversed, ...path];
   }

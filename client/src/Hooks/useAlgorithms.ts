@@ -2,13 +2,17 @@ import { useState, useEffect } from "react";
 
 import { useAlgoState } from "Contexts/AlgorithmContext";
 import { Node, Edge } from "Components/App/Container/Canvas";
-import { dijkstra, dfs, bfs, aStar } from "algorithms";
-import { prim, kruskal } from "algorithms";
+import { getConnectedComponents, dijkstra, dfs, bfs, aStar } from "algorithms";
+import {
+  prim,
+  kruskal,
+  fulkerson,
+  PathOutput,
+  MaxFlowOutput,
+} from "algorithms";
 import { EdgeInterface } from "Interfaces/EdgeInterface";
 import { VertexInterface } from "Interfaces/VertexInterface";
 import { getDistance } from "helper";
-
-type Output = EdgeInterface[][];
 
 export const useAlgorithms = () => {
   const [source, setSource] = useState<Node | null>(null);
@@ -32,12 +36,11 @@ export const useAlgorithms = () => {
     return heuristic;
   };
 
-  //TODO: different functions for Path, flow, trees
-  const runAlgorithm = (
+  const runPathAlgorithm = (
     algorithm: string,
     nodes: Node[],
     edges: Edge[]
-  ): Output => {
+  ): PathOutput => {
     switch (algorithm) {
       case "dijkstra":
         return dijkstra(nodes, edges, source!, target!);
@@ -48,6 +51,17 @@ export const useAlgorithms = () => {
       case "a*":
         const heuristic = getHeuristic(nodes, target!);
         return aStar(nodes, edges, source!, target!, heuristic);
+      default:
+        throw new Error();
+    }
+  };
+
+  const runTreeAlgorithm = (
+    algorithm: string,
+    nodes: Node[],
+    edges: Edge[]
+  ): PathOutput => {
+    switch (algorithm) {
       case "prim":
         return prim(nodes, edges, source!);
       case "kruskal":
@@ -57,6 +71,32 @@ export const useAlgorithms = () => {
     }
   };
 
+  const runFlowAlgorithm = (
+    algorithm: string,
+    nodes: Node[],
+    edges: Edge[]
+  ): MaxFlowOutput => {
+    switch (algorithm) {
+      case "fulkerson":
+        return fulkerson(nodes, edges, source!, target!);
+      default:
+        throw new Error();
+    }
+  };
+
+  function checkConnectedComponents(
+    V: VertexInterface[],
+    E: EdgeInterface[],
+    v: VertexInterface,
+    u: VertexInterface
+  ) {
+    const cc = getConnectedComponents(V, E);
+    console.log(cc);
+    console.log(cc.get(v));
+    console.log(cc.get(u));
+    return cc.get(v) === cc.get(u) ? true : false;
+  }
+
   useEffect(() => {
     if (algoState.name === null) {
       setSource(null);
@@ -64,5 +104,14 @@ export const useAlgorithms = () => {
     }
   }, [algoState, setSource, setTarget]);
 
-  return { setSourceNode, setTargetNode, source, target, runAlgorithm };
+  return {
+    setSourceNode,
+    setTargetNode,
+    source,
+    target,
+    runPathAlgorithm,
+    runTreeAlgorithm,
+    runFlowAlgorithm,
+    checkConnectedComponents,
+  };
 };

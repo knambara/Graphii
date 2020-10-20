@@ -1,3 +1,4 @@
+import { stringify } from "querystring";
 import React, { useReducer, createContext } from "react";
 
 type Action =
@@ -6,16 +7,19 @@ type Action =
   | { type: "continue" }
   | { type: "stepF" }
   | { type: "stepB" }
-  | { type: "complete" }
+  | { type: "complete"; newValue: string }
   | { type: "cancel" }
   | { type: "set"; newName: string; category: string | null; newStatus: string }
-  | { type: "setStatus"; newStatus: string; ready: boolean };
+  | { type: "setStatus"; newStatus: string; ready: boolean }
+  | { type: "reset" }
+  | { type: "error"; newStatus: string };
 type Dispatch = (action: Action) => void;
 type State = {
   name: string | null;
   category: string | null;
   status: string | null;
   ready: boolean;
+  value: string;
 };
 type AlgoProviderProps = { children: React.ReactNode };
 
@@ -29,24 +33,35 @@ function algoReducer(state: State, action: Action) {
     case "pause":
       return { ...state, status: "paused" };
     case "continue":
-      return { ...state, status: "continuing" };
+      return { ...state, status: "running" };
     case "stepF":
       return { ...state, status: "stepF" };
     case "stepB":
       return { ...state, status: "stepB" };
     case "complete":
-      return { ...state, status: "completed" };
+      return { ...state, status: "completed", value: action.newValue };
     case "cancel":
-      return { name: null, category: null, status: null, ready: false };
+      return {
+        name: null,
+        category: null,
+        status: null,
+        ready: false,
+        value: "",
+      };
     case "set":
       return {
         name: action.newName,
         category: action.category,
         status: action.newStatus,
         ready: false,
+        value: "",
       };
     case "setStatus":
       return { ...state, status: action.newStatus, ready: action.ready };
+    case "reset":
+      return { ...state, status: "setSource", ready: false, value: "" };
+    case "error":
+      return { ...state, status: action.newStatus, ready: false, value: "" };
 
     default:
       throw new Error(`Unhandled action type`);
@@ -59,6 +74,7 @@ function AlgoProvider({ children }: AlgoProviderProps) {
     category: null,
     status: null,
     ready: false,
+    value: "",
   });
 
   return (

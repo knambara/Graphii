@@ -20,6 +20,7 @@ const StyledContainer = styled("div")<{ show: boolean }>`
   transform-origin: center -20px;
   transform: ${(props) => (props.show ? `rotateX(0deg)` : `rotateX(-15deg)`)};
   transition: transform 0.3s, opacity 0.3s;
+  pointer-events: ${(props) => (props.show ? "auto" : "none")};
 `;
 
 const Content = styled("ul")<{ xCoor: number; yCoor: number }>`
@@ -37,7 +38,7 @@ const Content = styled("ul")<{ xCoor: number; yCoor: number }>`
   transition: transform 0.3s, opacity 0.3s;
 `;
 
-const ContentItem = styled("li")<{}>`
+const ContentItem = styled("li")<{ show: boolean }>`
   list-style-type: none;
   font-family: "Open sans", sans-serif;
   font-size: 20px;
@@ -46,7 +47,7 @@ const ContentItem = styled("li")<{}>`
   font-weight: 600;
   padding: 8px 16px;
   color: #00b8a9;
-  cursor: pointer;
+  cursor: ${(props) => (props.show ? "pointer" : "default")};
 
   &:hover {
     background-color: #f1f1f1;
@@ -143,7 +144,13 @@ const PopOver: React.FC<PopOverProps> = ({ state }) => {
     <StyledContainer show={state.show}>
       <Content ref={onRefChange} xCoor={x!} yCoor={y!}>
         {state.content.map((item, index) => (
-          <ContentItem key={index} onClick={() => handleClick(item)}>
+          <ContentItem
+            key={index}
+            onClick={() => {
+              handleClick(item);
+            }}
+            show={state.show}
+          >
             {item}
           </ContentItem>
         ))}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styled, {
   css,
   keyframes,
@@ -25,6 +25,9 @@ export interface GraphEdgeProps {
   handleClick?: (id: string) => void;
   showLabel: boolean;
   animation: string | null;
+  optionalValue: number | null;
+  interval: number;
+  updateEdgeWeight: (edgeID: string, newWeight: number) => void;
 }
 
 const EDGE_HEIGHT = 1.2;
@@ -43,6 +46,18 @@ const pathSpecial = () => keyframes`
   }
 `;
 
+const arrowRegular = () => keyframes`
+  100% {
+    color: #19d3da;
+  }
+`;
+
+const arrowSpecial = () => keyframes`
+  100% {
+    color: #f1fa3c;
+  }
+`;
+
 const mstRegularAnimation = () => keyframes`
   50% {
     background: #ff414d;
@@ -58,35 +73,14 @@ const mstSpecialAnimation = () => keyframes`
   }
 `;
 
-/********** STYLED-COMPONENTS **********/
-
-const StyledEdge = styled("div")<{
-  animation: (() => Keyframes) | null;
-}>`
-  position: absolute;
-  background: #ffffff;
-  transform-origin: 0%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  animation: ${(props) =>
-      props.animation === null ? "none" : props.animation()}
-    0.5s linear forwards;
-`;
-
-const ArrowHead = styled(FontAwesomeIcon)<{
-  show: boolean;
-  animation: (() => Keyframes) | null;
-}>`
-  visibility: ${(props) => (props.show ? "visible" : "hidden")};
-  position: absolute;
-  right: 2.5px;
-  color: #ffffff;
-  height: 5px;
-  width: 5px !important;
-  animation: ${(props) =>
-      props.animation === null ? "none" : props.animation()}
-    0.5s linear forwards;
+const flowAnimation = (saturation: number) => keyframes`
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+    opacity: ${saturation}%;
+  }
 `;
 
 const traverse = keyframes`
@@ -98,23 +92,69 @@ const traverse = keyframes`
   }
 `;
 
-const ChevronRight = styled(FontAwesomeIcon)`
+/********** STYLED-COMPONENTS **********/
+
+const StyledEdge = styled("div")<{
+  animation: (() => Keyframes) | null;
+  interval: number;
+}>`
+  position: absolute;
+  background: #ffffff;
+  transform-origin: 0%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  animation: ${(props) =>
+      props.animation === null ? "none" : props.animation()}
+    ${(props) => props.interval}s linear forwards;
+`;
+
+const ArrowHead = styled(FontAwesomeIcon)<{
+  show: boolean;
+  animation: string | null;
+  interval: number;
+}>`
+  visibility: ${(props) => (props.show ? "visible" : "hidden")};
+  position: absolute;
+  right: 2.5px;
+  color: #ffffff;
+  height: 5px;
+  width: 5px !important;
+  animation: ${(props) =>
+      props.animation === null
+        ? "none"
+        : props.animation === "regular"
+        ? arrowRegular
+        : arrowSpecial}
+    ${(props) => props.interval}s linear forwards;
+`;
+
+const ChevronRight = styled(FontAwesomeIcon)<{ interval: number }>`
   position: absolute;
   left: calc(0% - 3px);
   height: 5px;
   width: 5px !important;
   color: #19d3da;
-  animation: ${traverse} 0.5s linear;
+  animation: ${traverse} ${(props) => props.interval}s linear;
 `;
 
-const Label = styled.input`
+const Flow = styled("div")<{ saturation: number; interval: number }>`
+  position: absolute;
+  height: 100%;
+  width: 50%;
+  background-color: #4c6ef5;
+  animation: ${(props) => flowAnimation(props.saturation)}
+    ${(props) => props.interval}s linear forwards;
+`;
+
+const Label = styled.div`
   position: absolute;
   display: block;
-  font-size: 5px;
+  font-size: 4px;
   background: transparent;
   border: none;
   color: white;
-  top: 2px;
+  top: 0.2px;
   display: inline-block;
   text-align: center;
   width: 100%;
@@ -129,6 +169,9 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
   weight,
   showLabel,
   animation,
+  optionalValue,
+  interval,
+  updateEdgeWeight,
 }) => {
   const width = getDistance(headNode.x, headNode.y, tailNode.x, tailNode.y);
   const degree = getAngleRad(headNode.x, headNode.y, tailNode.x, tailNode.y);
@@ -137,9 +180,14 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
 
   const algoState = useAlgoState();
   const animationRef = useRef<(() => Keyframes) | null>(null);
-  console.log(animation);
-  console.log(algoState.category);
-  console.log(animationRef.current);
+
+  const [saturation, setSaturation] = useState<number>(0);
+
+  useEffect(() => {
+    if (algoState.category === "flow" && optionalValue) {
+      setSaturation((prev) => Math.round((optionalValue / weight) * 100));
+    }
+  }, [weight, optionalValue]);
 
   useEffect(() => {
     if (animation === null) {
@@ -157,12 +205,17 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
           animation === "regular" ? mstRegularAnimation : mstSpecialAnimation;
         return;
       case "flow":
+        animationRef.current = null;
         return;
       default:
         animationRef.current = null;
         return;
     }
   }, [animation]);
+
+  console.log(weight);
+
+  const labelRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <StyledEdge
@@ -178,17 +231,44 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
         handleClick!(id);
       }}
       animation={!animation ? null : animationRef.current}
+      interval={interval / 1000}
     >
       {animationRef.current && algoState.category === "path" && (
-        <ChevronRight icon={faChevronRight} size="1x" />
+        <ChevronRight
+          icon={faChevronRight}
+          size="1x"
+          interval={interval / 1000}
+        />
       )}
       <ArrowHead
         icon={faArrowRight}
         size="1x"
         show={algoState.category !== "tree"}
-        animation={!animation ? null : animationRef.current}
+        animation={!animation ? null : animation}
+        interval={interval / 1000}
       />
-      {showLabel && <Label type={"text"} value={weight} />}
+      {animation === "regular" && algoState.category === "flow" && (
+        <Flow saturation={saturation} interval={interval / 1000} />
+      )}
+      {showLabel && (
+        <Label
+          contentEditable={!algoState.name}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          onMouseUp={(e) => e.stopPropagation()}
+          onInput={(e) => {
+            let input = e.currentTarget.innerHTML;
+            let isNum = /^\d+$/.test(input);
+            if (isNum) updateEdgeWeight(id, parseInt(input, 10));
+            else labelRef.current!.innerHTML = `${weight}`;
+          }}
+          ref={labelRef}
+        >
+          {algoState.category === "flow"
+            ? `${optionalValue} / ${weight}`
+            : weight}
+        </Label>
+      )}
     </StyledEdge>
   );
 };

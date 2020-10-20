@@ -5,7 +5,9 @@ import NavTab from "./NavTab";
 import PopOver, { PopOverState } from "./PopOver";
 import { useAlgoState } from "Contexts/AlgorithmContext";
 
-interface NavbarProps {}
+interface NavbarProps {
+  onClear: () => void;
+}
 
 const StyledNav = styled("nav")<{ show: boolean }>`
   flex: 1;
@@ -20,10 +22,33 @@ const StyledNav = styled("nav")<{ show: boolean }>`
   z-index: 2;
 `;
 
+const ClearButton = styled("button")`
+  background-color: white;
+  border: none;
+  border-radius: 1rem;
+  color: #e94560;
+  padding: 16px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  font-family: "Open sans", sans-serif;
+  font-weight: 600;
+  margin: 4px 2px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  margin-left: 500px;
+
+  &:hover {
+    background-color: #f1fa3c;
+    color: #16213e;
+  }
+`;
+
 const popOverContent: { [string: string]: string[] } = {
-  path: ["dfs", "bfs", "dijkstra", "bellman-ford", "a*"],
+  path: ["dfs", "bfs", "dijkstra", "a*"],
   tree: ["prim", "kruskal"],
-  flow: ["fulkerson", "karp", "dinic"],
+  flow: ["fulkerson"],
 };
 
 const initialPopOver = {
@@ -73,6 +98,7 @@ const Navbar: React.FC<NavbarProps> = (props) => {
         Max-Flow
       </NavTab>
       <PopOver state={popOver} />
+      <ClearButton onClick={() => props.onClear()}>Clear Canvas</ClearButton>
     </StyledNav>
   );
 };
