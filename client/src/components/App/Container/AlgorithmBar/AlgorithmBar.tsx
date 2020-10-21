@@ -198,9 +198,20 @@ const AlgorithmBar: React.FC<{ changeSpeed: (value: number) => void }> = ({
         <StyledIcon
           icon={faStepBackward}
           color="white"
-          clickable={algoState.ready && algoState.status !== "ready"}
+          clickable={
+            algoState.ready &&
+            algoState.status !== "ready" &&
+            algoState.status !== "completed" &&
+            algoState.status !== "running"
+          }
           onClick={() => {
-            if (!algoState.ready || algoState.status === "ready") return;
+            if (
+              !algoState.ready ||
+              algoState.status === "completed" ||
+              algoState.status === "ready" ||
+              algoState.status === "running"
+            )
+              return;
             algoState.status === "paused" && algoDispatch({ type: "stepB" });
           }}
         />
@@ -229,9 +240,18 @@ const AlgorithmBar: React.FC<{ changeSpeed: (value: number) => void }> = ({
         <StyledIcon
           icon={faStepForward}
           color="white"
-          clickable={algoState.ready && algoState.status !== "completed"}
+          clickable={
+            algoState.ready &&
+            algoState.status !== "completed" &&
+            algoState.status !== "running"
+          }
           onClick={() => {
-            if (!algoState.ready || algoState.status === "completed") return;
+            if (
+              !algoState.ready ||
+              algoState.status === "completed" ||
+              algoState.status === "running"
+            )
+              return;
             algoState.status === "paused" && algoDispatch({ type: "stepF" });
           }}
         />

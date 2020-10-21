@@ -35,7 +35,7 @@ const StyledModal = styled.div<{ show: boolean }>`
   border-radius: 4px;
   text-align: center;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  animation: ${slideIn} 0.5s ease-out forwards;
+  animation: ${slideIn} 0.3s ease-out forwards;
 `;
 
 const ModalTitle = styled.h2`

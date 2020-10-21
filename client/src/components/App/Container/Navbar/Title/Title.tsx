@@ -25,6 +25,8 @@ const Title: React.FC<TitleProps> = (props) => {
     if (
       algoState.status === "setSource" ||
       algoState.status === "setTarget" ||
+      algoState.status === "ready" ||
+      algoState.status === "completed" ||
       (algoState.status !== null && algoState.status.includes("Error"))
     ) {
       algoDispatch({ type: "reset" });

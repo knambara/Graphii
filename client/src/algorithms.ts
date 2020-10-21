@@ -401,9 +401,7 @@ export function prim(
         (e.tailNode === u && PQ.containsKey(e.headNode))
       ) {
         return e;
-      }
-
-      if (
+      } else if (
         ((e.headNode === u && !PQ.containsKey(e.tailNode)) ||
           (e.tailNode === u && !PQ.containsKey(e.headNode))) &&
         !traversed.includes(e)
@@ -421,8 +419,7 @@ export function prim(
       }
     }
   }
-  console.log(traversed);
-  console.log(mst);
+
   return [traversed, mst];
 }
 

@@ -25,7 +25,7 @@ export interface GraphEdgeProps {
   handleClick?: (id: string) => void;
   showLabel: boolean;
   animation: string | null;
-  optionalValue: number | null;
+  optionalValue: number;
   interval: number;
   updateEdgeWeight: (edgeID: string, newWeight: number) => void;
 }
@@ -79,7 +79,7 @@ const flowAnimation = (saturation: number) => keyframes`
   }
   100% {
     width: 100%;
-    opacity: ${saturation}%;
+    opacity: ${saturation};
   }
 `;
 
@@ -143,6 +143,7 @@ const Flow = styled("div")<{ saturation: number; interval: number }>`
   height: 100%;
   width: 50%;
   background-color: #4c6ef5;
+  opacity: 1;
   animation: ${(props) => flowAnimation(props.saturation)}
     ${(props) => props.interval}s linear forwards;
 `;
@@ -154,7 +155,7 @@ const Label = styled.div`
   background: transparent;
   border: none;
   color: white;
-  top: 0.2px;
+  top: 1px;
   display: inline-block;
   text-align: center;
   width: 100%;
@@ -184,7 +185,7 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
   const [saturation, setSaturation] = useState<number>(0);
 
   useEffect(() => {
-    if (algoState.category === "flow" && optionalValue) {
+    if (algoState.category === "flow") {
       setSaturation((prev) => Math.round((optionalValue / weight) * 100));
     }
   }, [weight, optionalValue]);
@@ -213,9 +214,10 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
     }
   }, [animation]);
 
-  console.log(weight);
-
   const labelRef = useRef<HTMLDivElement | null>(null);
+
+  console.log(showLabel);
+  console.log(animationRef.current);
 
   return (
     <StyledEdge
@@ -230,7 +232,13 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
         e.stopPropagation();
         handleClick!(id);
       }}
-      animation={!animation ? null : animationRef.current}
+      animation={
+        animation === null
+          ? null
+          : algoState.category === "path" && animation === "special"
+          ? pathSpecial
+          : animationRef.current
+      }
       interval={interval / 1000}
     >
       {animationRef.current && algoState.category === "path" && (

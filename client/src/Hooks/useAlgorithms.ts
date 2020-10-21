@@ -91,9 +91,6 @@ export const useAlgorithms = () => {
     u: VertexInterface
   ) {
     const cc = getConnectedComponents(V, E);
-    console.log(cc);
-    console.log(cc.get(v));
-    console.log(cc.get(u));
     return cc.get(v) === cc.get(u) ? true : false;
   }
 
