@@ -5,6 +5,7 @@ import { useKeyDispatch } from "Contexts/KeyContext";
 import Canvas from "./Canvas";
 import Navbar from "./Navbar";
 import AlgorithmBar from "./AlgorithmBar";
+import Modal from "./Modal";
 
 interface ContainerProps {
   children?: React.ReactNode;
@@ -20,6 +21,7 @@ const StyledDiv = styled.div`
 const Container: React.FC<ContainerProps> = () => {
   const [clear, setClear] = useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(1);
+  const [isOpen, setIsOpen] = useState<boolean>(true);
 
   const keyDispatch = useKeyDispatch();
 
@@ -43,11 +45,16 @@ const Container: React.FC<ContainerProps> = () => {
     setSpeed((prev) => newValue);
   };
 
+  const handleToggle = () => {
+    setIsOpen((prev) => !prev);
+  };
+
   return (
     <StyledDiv onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
-      <Navbar onClear={setClearTrue} />
+      <Navbar onClear={setClearTrue} onQuestionClick={handleToggle} />
       <AlgorithmBar changeSpeed={handleChangeSpeed} />
       <Canvas clearGraphs={clear} offClear={setClearFalse} speed={speed} />
+      <Modal isOpen={isOpen} toggle={handleToggle} />
     </StyledDiv>
   );
 };

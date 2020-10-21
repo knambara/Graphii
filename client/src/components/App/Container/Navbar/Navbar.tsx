@@ -5,8 +5,12 @@ import NavTab from "./NavTab";
 import PopOver, { PopOverState } from "./PopOver";
 import { useAlgoState } from "Contexts/AlgorithmContext";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+
 interface NavbarProps {
   onClear: () => void;
+  onQuestionClick: () => void;
 }
 
 const StyledNav = styled("nav")<{ show: boolean }>`
@@ -34,14 +38,26 @@ const ClearButton = styled("button")`
   font-size: 16px;
   font-family: "Open sans", sans-serif;
   font-weight: 600;
-  margin: 4px 2px;
   transition-duration: 0.4s;
   cursor: pointer;
-  margin-left: 500px;
+  position: absolute;
+  right: 50px;
 
   &:hover {
     background-color: #f1fa3c;
     color: #16213e;
+  }
+`;
+
+const QuestionCircle = styled(FontAwesomeIcon)`
+  font-size: 20px;
+  cursor: pointer;
+  transition: opacity 0.5s;
+  position: absolute;
+  right: 250px;
+
+  &:hover {
+    opacity: 0.5;
   }
 `;
 
@@ -98,6 +114,11 @@ const Navbar: React.FC<NavbarProps> = (props) => {
         Max-Flow
       </NavTab>
       <PopOver state={popOver} />
+      <QuestionCircle
+        icon={faQuestionCircle}
+        color="white"
+        onClick={() => props.onQuestionClick()}
+      />
       <ClearButton onClick={() => props.onClear()}>Clear Canvas</ClearButton>
     </StyledNav>
   );
