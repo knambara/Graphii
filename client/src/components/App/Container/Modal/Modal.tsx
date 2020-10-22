@@ -81,9 +81,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, toggle }) => {
         <ModalTitle>Welcome To Graphii</ModalTitle>
         <ModalSubTitle>
           Before you get started, here is a list of instructions on how to use
-          this application. Please note that this app is suited for Chrome and
-          Firefox.
+          this application.
         </ModalSubTitle>
+        <ModalSubTitle>Please use Chrome or Firefox for optimal user experience.</ModalSubTitle>
         <InstructionList>
           <InstructionItem>
             <Bold>Add/Delete a Node</Bold>: Left click on the canvas to create a
