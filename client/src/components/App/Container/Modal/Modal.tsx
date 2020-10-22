@@ -81,7 +81,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, toggle }) => {
         <ModalTitle>Welcome To Graphii</ModalTitle>
         <ModalSubTitle>
           Before you get started, here is a list of instructions on how to use
-          this application.
+          this application. Please note that this app is suited for Chrome and
+          Firefox.
         </ModalSubTitle>
         <InstructionList>
           <InstructionItem>
