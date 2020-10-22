@@ -4,6 +4,8 @@
 
 ![](graphii.gif)
 
+[Link](https://graphii.herokuapp.com/)
+
 ### Description
 
 This app was created using react and typescript and it allows you to create custom graphs on a finite space zoomable and pannable canvas. You can visualize path algorithms (dfs, bfs, dijkstra, a\*), minimum spanning tree algorithms (prim-jarnik, kruskal), and a max-flow algorithm (ford-fulkerson).
