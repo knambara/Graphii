@@ -385,6 +385,7 @@ export function prim(
 
   while (!PQ.isEmpty()) {
     const u = PQ.dequeue()!;
+    console.log(u.dist);
     if (u.prev !== null) {
       const edge = edges.find(
         (edge) =>
@@ -411,9 +412,9 @@ export function prim(
     });
     for (const edge of incidentEdges) {
       const v = edge.headNode === u ? edge.tailNode : edge.headNode;
-      let uvDist = u.dist + edge.weight;
-      if (uvDist < v.dist) {
-        v.dist = uvDist;
+      let uvWeight = edge.weight;
+      if (uvWeight < v.dist) {
+        v.dist = uvWeight;
         v.prev = u; // Maintain pointers for path
         PQ.decreaseKey(v, v.dist);
       }

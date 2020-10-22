@@ -216,9 +216,6 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
 
   const labelRef = useRef<HTMLDivElement | null>(null);
 
-  console.log(showLabel);
-  console.log(animationRef.current);
-
   return (
     <StyledEdge
       style={{
